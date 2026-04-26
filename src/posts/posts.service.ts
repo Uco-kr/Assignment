@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CreatePostDto } from '../dto/CreatePostDto';
-import { Post } from '../generated/prisma';
+import { Post } from '@prisma/client';
 import { UpdatePostDto } from '../dto/UpdatePostDto';
 import { Repository } from './repository';
 

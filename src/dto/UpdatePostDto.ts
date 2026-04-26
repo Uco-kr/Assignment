@@ -14,5 +14,5 @@ export class UpdatePostDto {
   @IsOptional()
   @IsNumber()
   @IsNotEmpty()
-  authID!: number;
+  authorId!: number;
 }

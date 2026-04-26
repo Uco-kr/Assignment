@@ -1,54 +1,38 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreatePostDto } from '../dto/CreatePostDto';
-import { post } from './interface';
+import { Post } from '../generated/prisma';
 import { UpdatePostDto } from '../dto/UpdatePostDto';
+import { Repository } from './repository';
 
 @Injectable()
 export class PostsService {
-  private posts: post[] = [];
-  private length = 0;
+  constructor(private readonly repo: Repository) {}
 
-  create(data: CreatePostDto): post {
-    const newPost = {
-      createdAT: new Date().toISOString(),
-      updateAT: new Date().toISOString(),
-      ...data,
-      id: this.length === 0 ? 0 : this.length + 1,
-    };
-    this.posts.push(newPost);
-    this.length++;
-    return newPost;
+  async create(data: CreatePostDto): Promise<Post> {
+    return await this.repo.create(data);
   }
 
-  findAll() {
-    return this.posts;
+  async findAll(): Promise<Post[]> {
+    return await this.repo.findAll();
   }
 
-  findByPostID(id: number): post {
-    const postIDpost = this.posts.find((posts) => posts.id == id);
-    if (!postIDpost) {
-      throw new NotFoundException();
-    }
+  async findByPostID(id: number): Promise<Post> {
+    const postIDpost = await this.repo.findByPostID(id);
     return postIDpost;
   }
 
-  findByAuthID(id: number): post[] {
-    const userIDpost = this.posts.filter((posts) => posts.authID == id);
-    if (!userIDpost.length) {
-      throw new NotFoundException();
-    }
+  async findByAuthID(id: number): Promise<Post[]> {
+    const userIDpost = this.repo.findByAuthID(id);
     return userIDpost;
   }
 
-  updatePost(id: number, data: UpdatePostDto): post {
-    const findPost = this.findByPostID(id);
-    Object.assign(findPost, data);
-    findPost.updateAT = new Date().toISOString();
-    return findPost;
+  async updatePost(id: number, data: UpdatePostDto): Promise<Post> {
+    const updatedPost = await this.repo.updatePost(id, data);
+    return updatedPost;
   }
 
-  deletePost(id: number) {
-    this.posts = this.posts.filter((posts) => posts.id != id);
+  async deletePost(id: number): Promise<{ message: string }> {
+    await this.repo.deletePost(id);
     return { message: `Id가 ${id}인 게시글을 삭제하였습니다.` };
   }
 }

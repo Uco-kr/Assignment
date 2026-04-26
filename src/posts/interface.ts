@@ -2,7 +2,7 @@ export interface post {
   id: number;
   title: string;
   content: string;
-  authID: number;
+  authorId: number;
   createdAT: string;
   updateAT: string;
 }

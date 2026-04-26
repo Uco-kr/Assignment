@@ -11,5 +11,5 @@ export class CreatePostDto {
 
   @IsNumber()
   @IsNotEmpty()
-  authID!: number;
+  authorId!: number;
 }

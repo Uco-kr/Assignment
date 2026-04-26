@@ -21,8 +21,8 @@ export class PostsService {
     return postIDpost;
   }
 
-  async findByAuthID(id: number): Promise<Post[]> {
-    const userIDpost = this.repo.findByAuthID(id);
+  async findByAuthorID(id: number): Promise<Post[]> {
+    const userIDpost = this.repo.findByAuthorID(id);
     return userIDpost;
   }
 

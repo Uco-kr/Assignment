@@ -24,7 +24,7 @@ export class Repository {
     return Post;
   }
 
-  async findByAuthID(id: number): Promise<Post[]> {
+  async findByAuthorID(id: number): Promise<Post[]> {
     const Post = await this.prisma.post.findMany({ where: { authorId: id } });
     if (!Post.length) {
       throw new NotFoundException(

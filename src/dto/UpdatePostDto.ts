@@ -1,18 +1,26 @@
-import { IsString, IsNotEmpty, IsOptional, IsNumber } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdatePostDto {
-  @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  title!: string;
+  @ApiPropertyOptional({
+    description: '게시글의 제목',
+    type: String,
+    minLength: 1,
+    nullable: true,
+  })
+  title?: string;
 
-  @IsOptional()
-  @IsNotEmpty()
-  @IsString()
-  content!: string;
+  @ApiPropertyOptional({
+    description: '게시글의 내용',
+    type: String,
+    minLength: 1,
+    nullable: true,
+  })
+  content?: string;
 
-  @IsOptional()
-  @IsNumber()
-  @IsNotEmpty()
-  authorId!: number;
+  @ApiPropertyOptional({
+    description: '게시글의 작성자ID',
+    type: Number,
+    nullable: true,
+  })
+  authorId?: number;
 }

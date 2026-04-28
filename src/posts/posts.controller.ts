@@ -7,6 +7,8 @@ import {
   Param,
   Patch,
   Delete,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from '../dto/CreatePostDto';
@@ -19,6 +21,8 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { User } from '@prisma/client';
 
 @ApiTags('posts')
 @Controller('posts')
@@ -65,6 +69,7 @@ export class PostsController {
     return this.postservice.findByPostID(id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   @ApiOperation({ summary: '게시글 업데이트' })
   @ApiOkResponse({
@@ -79,11 +84,13 @@ export class PostsController {
   })
   updatePost(
     @Param('id', ParseIntPipe) id: number,
+    @Request() req: Request & { user: Omit<User, 'password'> },
     @Body() update: UpdatePostDto,
   ) {
-    return this.postservice.updatePost(id, update);
+    return this.postservice.updatePost(id, req.user.id, update);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   @ApiOperation({ summary: '게시글 삭제' })
   @ApiNotFoundResponse({ description: '게시글을 찾을 수 없습니다.' })
@@ -92,7 +99,10 @@ export class PostsController {
     name: 'id',
     description: '게시글 ID',
   })
-  deletePost(@Param('id', ParseIntPipe) id: number) {
-    return this.postservice.deletePost(id);
+  deletePost(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req: Request & { user: Omit<User, 'password'> },
+  ) {
+    return this.postservice.deletePost(id, req.user.id);
   }
 }

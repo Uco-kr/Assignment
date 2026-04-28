@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { CreatePostDto } from '../dto/CreatePostDto';
 import { Post } from '@prisma/client';
 import { UpdatePostDto } from '../dto/UpdatePostDto';
@@ -26,12 +26,23 @@ export class PostsService {
     return userIDpost;
   }
 
-  async updatePost(id: number, data: UpdatePostDto): Promise<Post> {
-    const updatedPost = await this.repo.updatePost(id, data);
-    return updatedPost;
+  async updatePost(
+    id: number,
+    userId: number,
+    data: UpdatePostDto,
+  ): Promise<Post> {
+    const Post = await this.repo.findByPostID(id);
+    if (Post.authorId !== userId) {
+      throw new ForbiddenException('수정 권한이 없습니다.');
+    }
+    return await this.repo.updatePost(id, data);
   }
 
-  async deletePost(id: number): Promise<{ message: string }> {
+  async deletePost(id: number, userId: number): Promise<{ message: string }> {
+    const post = await this.repo.findByPostID(id);
+    if (post.authorId !== userId) {
+      throw new ForbiddenException('수정 권한이 없습니다.');
+    }
     await this.repo.deletePost(id);
     return { message: `Id가 ${id}인 게시글을 삭제하였습니다.` };
   }

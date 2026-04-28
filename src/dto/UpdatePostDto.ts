@@ -16,11 +16,4 @@ export class UpdatePostDto {
     nullable: true,
   })
   content?: string;
-
-  @ApiPropertyOptional({
-    description: '게시글의 작성자ID',
-    type: Number,
-    nullable: true,
-  })
-  authorId?: number;
 }

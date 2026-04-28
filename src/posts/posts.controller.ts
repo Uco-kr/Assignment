@@ -24,18 +24,21 @@ import {
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { User } from '@prisma/client';
 
-@ApiTags('posts')
-@Controller('posts')
+@ApiTags('post')
+@Controller('post')
 export class PostsController {
   constructor(private readonly postservice: PostsService) {}
 
-  @Post()
+  @Post(':authorId')
   @ApiCreatedResponse({
     description: '게시글이 성공적으로 생성되었습니다.',
   })
   @ApiOperation({ summary: '게시글 작성' })
-  create(@Body() created: CreatePostDto) {
-    return this.postservice.create(created);
+  create(
+    @Param('authorId', ParseIntPipe) id: number,
+    @Body() created: CreatePostDto,
+  ) {
+    return this.postservice.create(id, created);
   }
 
   @Get()

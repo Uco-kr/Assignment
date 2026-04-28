@@ -8,8 +8,9 @@ import { Repository } from './repository';
 export class PostsService {
   constructor(private readonly repo: Repository) {}
 
-  async create(data: CreatePostDto): Promise<Post> {
-    return await this.repo.create(data);
+  async create(authorId: number, data: CreatePostDto): Promise<Post> {
+    const createDate = { ...data, authorId: authorId };
+    return await this.repo.create(createDate);
   }
 
   async findAll(): Promise<Post[]> {

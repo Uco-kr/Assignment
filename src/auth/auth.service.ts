@@ -15,7 +15,9 @@ export class AuthService {
     Username: string,
     pass: string,
   ): Promise<Partial<User> | null> {
+    console.log('input username:', Username);
     const user = await this.usersService.findOne(Username);
+    console.log('db user:', user);
     if (user && (await bcrypt.compare(pass, user.password))) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, ...result } = user;

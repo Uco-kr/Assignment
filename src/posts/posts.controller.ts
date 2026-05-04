@@ -11,8 +11,8 @@ import {
   Request,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
-import { CreatePostDto } from '../dto/CreatePostDto';
-import { UpdatePostDto } from '../dto/UpdatePostDto';
+import { CreatePostDto } from './dto/CreatePostDto';
+import { UpdatePostDto } from './dto/UpdatePostDto';
 import {
   ApiCreatedResponse,
   ApiNotFoundResponse,
@@ -21,7 +21,7 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { User } from '@prisma/client';
 
 @ApiTags('post')

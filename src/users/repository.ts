@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateUserDto } from '../dto/CreateUserDto';
-import { UpdateUserDto } from '../dto/UpdateUserDto';
+import { CreateUserDto } from './dto/CreateUserDto';
+import { UpdateUserDto } from './dto/UpdateUserDto';
 
 @Injectable()
 export class Repository {
@@ -16,6 +16,16 @@ export class Repository {
       throw new NotFoundException(`이름이 ${name}인 사용자가 없습니다.`);
     }
     return findUSer;
+  }
+
+  async findOneByEmail(email: string): Promise<User> {
+    const findUser = await this.prisma.user.findFirst({
+      where: { email: email },
+    });
+    if (!findUser) {
+      throw new NotFoundException(`emaile이 ${email}인 사용자가 없습니다.`);
+    }
+    return findUser;
   }
 
   async create(create: CreateUserDto): Promise<User> {

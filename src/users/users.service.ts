@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Repository } from './repository';
 import { User } from '@prisma/client';
-import { CreateUserDto } from '../dto/CreateUserDto';
+import { CreateUserDto } from './dto/CreateUserDto';
 import * as bcrypt from 'bcrypt';
-import { UpdateUserDto } from '../dto/UpdateUserDto';
+import { UpdateUserDto } from './dto/UpdateUserDto';
 
 @Injectable()
 export class UsersService {
@@ -11,6 +11,11 @@ export class UsersService {
 
   async findOne(name: string): Promise<User> {
     const user = await this.repo.findOne(name);
+    return user;
+  }
+
+  async findOneByEmail(email: string): Promise<User> {
+    const user = await this.repo.findOneByEmail(email);
     return user;
   }
 

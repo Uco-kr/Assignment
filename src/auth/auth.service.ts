@@ -1,9 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { User } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
+type GoogleUser = {
+  email: string;
+  firstName: string;
+  lastName: string;
+};
 @Injectable()
 export class AuthService {
   constructor(
@@ -31,5 +36,25 @@ export class AuthService {
     return {
       access_token: this.jwtService.sign(payload),
     };
+  }
+
+  async googleLogin(googleUser: GoogleUser) {
+    if (!googleUser) {
+      throw new BadRequestException('Unauthenticated');
+    }
+
+    let user = await this.usersService.findOneByEmail(googleUser.email);
+
+    if (!user) {
+      const password = Math.random();
+
+      user = await this.usersService.create({
+        email: googleUser.email,
+        name: `${googleUser.lastName}${googleUser.firstName}`,
+        password: `${password}`,
+      });
+    }
+
+    return this.login(user);
   }
 }

@@ -23,7 +23,7 @@ export class Repository {
       where: { email: email },
     });
     if (!findUser) {
-      throw new NotFoundException(`emaile이 ${email}인 사용자가 없습니다.`);
+      throw new NotFoundException(`email이 ${email}인 사용자가 없습니다.`);
     }
     return findUser;
   }
@@ -32,11 +32,16 @@ export class Repository {
     return await this.prisma.user.create({ data: create });
   }
 
-  async updateUser(id: number, data: UpdateUserDto): Promise<User> {
-    return this.prisma.user.update({ where: { id: id }, data: data });
+  async updateUser(id: string, data: UpdateUserDto): Promise<User> {
+    return await this.prisma.user.update({ where: { uuid: id }, data: data });
   }
 
-  async deleteUser(id: number): Promise<void> {
-    await this.prisma.user.delete({ where: { id: id } });
+  async subscribe(uuid: string, category_id: string): Promise<User> {
+    const subscriber = await this.prisma.userCategory.create({
+      data: { userId: uuid, categoryId: category_id },
+      include: { user: true },
+    });
+
+    return subscriber.user;
   }
 }

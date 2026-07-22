@@ -8,7 +8,7 @@ import { Post } from '@prisma/client';
 export class Repository {
   constructor(private prisma: PrismaService) {}
 
-  async create(create: CreatePostDto & { authorId: number }): Promise<Post> {
+  async create(create: CreatePostDto & { authorId: string }): Promise<Post> {
     return await this.prisma.post.create({ data: create });
   }
 
@@ -16,15 +16,15 @@ export class Repository {
     return await this.prisma.post.findMany();
   }
 
-  async findByPostID(id: number): Promise<Post> {
-    const Post = await this.prisma.post.findUnique({ where: { id: id } });
+  async findByPostID(id: string): Promise<Post> {
+    const Post = await this.prisma.post.findUnique({ where: { uuid: id } });
     if (!Post) {
       throw new NotFoundException(`id가 ${id}인 게시물이 없습니다.`);
     }
     return Post;
   }
 
-  async findByAuthorID(id: number): Promise<Post[]> {
+  async findByAuthorID(id: string): Promise<Post[]> {
     const Post = await this.prisma.post.findMany({ where: { authorId: id } });
     if (!Post.length) {
       throw new NotFoundException(
@@ -34,11 +34,19 @@ export class Repository {
     return Post;
   }
 
-  async updatePost(id: number, data: UpdatePostDto): Promise<Post> {
-    return this.prisma.post.update({ where: { id: id }, data: data });
+  async updatePost(id: string, data: UpdatePostDto): Promise<Post> {
+    return this.prisma.post.update({ where: { uuid: id }, data: data });
   }
 
-  async deletePost(id: number): Promise<void> {
-    await this.prisma.post.delete({ where: { id: id } });
+  async deletePost(id: string): Promise<void> {
+    await this.prisma.post.delete({ where: { uuid: id } });
+  }
+
+  async categorize(id: string, category_id: string): Promise<Post> {
+    const categorizer = await this.prisma.postCategory.create({
+      data: { postId: id, categoryId: category_id },
+      include: { post: true },
+    });
+    return categorizer.post;
   }
 }

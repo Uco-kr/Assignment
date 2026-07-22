@@ -8,7 +8,7 @@ import { Repository } from './repository';
 export class PostsService {
   constructor(private readonly repo: Repository) {}
 
-  async create(authorId: number, data: CreatePostDto): Promise<Post> {
+  async create(authorId: string, data: CreatePostDto): Promise<Post> {
     const createDate = { ...data, authorId: authorId };
     return await this.repo.create(createDate);
   }
@@ -17,19 +17,19 @@ export class PostsService {
     return await this.repo.findAll();
   }
 
-  async findByPostID(id: number): Promise<Post> {
+  async findByPostID(id: string): Promise<Post> {
     const postIDpost = await this.repo.findByPostID(id);
     return postIDpost;
   }
 
-  async findByAuthorID(id: number): Promise<Post[]> {
+  async findByAuthorID(id: string): Promise<Post[]> {
     const userIDpost = this.repo.findByAuthorID(id);
     return userIDpost;
   }
 
   async updatePost(
-    id: number,
-    userId: number,
+    id: string,
+    userId: string,
     data: UpdatePostDto,
   ): Promise<Post> {
     const Post = await this.repo.findByPostID(id);
@@ -39,12 +39,16 @@ export class PostsService {
     return await this.repo.updatePost(id, data);
   }
 
-  async deletePost(id: number, userId: number): Promise<{ message: string }> {
+  async deletePost(id: string, userId: string): Promise<{ message: string }> {
     const post = await this.repo.findByPostID(id);
     if (post.authorId !== userId) {
       throw new ForbiddenException('수정 권한이 없습니다.');
     }
     await this.repo.deletePost(id);
     return { message: `Id가 ${id}인 게시글을 삭제하였습니다.` };
+  }
+
+  async categorize(id: string, category_id: string): Promise<Post> {
+    return await this.repo.categorize(id, category_id);
   }
 }

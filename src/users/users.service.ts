@@ -31,7 +31,7 @@ export class UsersService {
     return await this.repo.create(bcryptData);
   }
 
-  async updateUser(id: number, data: UpdateUserDto): Promise<User> {
+  async updateUser(uuid: string, data: UpdateUserDto): Promise<User> {
     if (data.password) {
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(data.password, saltRounds);
@@ -40,8 +40,12 @@ export class UsersService {
         ...data,
         password: hashedPassword,
       };
-      return await this.repo.updateUser(id, bcryptData);
+      return await this.repo.updateUser(uuid, bcryptData);
     }
-    return await this.repo.updateUser(id, data);
+    return await this.repo.updateUser(uuid, data);
+  }
+
+  async subscribe(uuid: string, category_id: string): Promise<User> {
+    return await this.repo.subscribe(uuid, category_id);
   }
 }

@@ -1,60 +1,52 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
-import { User } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
+import { infoteamAccountService } from '../infoteam-account/infoteam-account.service';
+import { authRepository } from './auth.repository';
 
-type GoogleUser = {
-  email: string;
-  firstName: string;
-  lastName: string;
-};
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private infoteamAccountService: infoteamAccountService,
+    private authRepository: authRepository,
   ) {}
 
-  async validateUser(
-    Username: string,
-    pass: string,
-  ): Promise<Partial<User> | null> {
-    console.log('input username:', Username);
-    const user = await this.usersService.findOne(Username);
-    console.log('db user:', user);
-    if (user && (await bcrypt.compare(pass, user.password))) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, ...result } = user;
-      return result;
-    }
-    return null;
+  async login(
+    auth: string,
+  ): Promise<{ access_token: string; refresh_token: string }> {
+    const idpToken = auth.split('')[1];
+    const userInfo = await this.infoteamAccountService.getUserInfo(idpToken);
+    const user = await this.authRepository
+      .findUserOrCreate(userInfo)
+      .catch(() => {
+        throw new UnauthorizedException();
+      });
+    const tokens = await this.issueTokens(user.uuid);
+    await this.authRepository.saveRefreshToken(
+      tokens.refresh_token,
+      userInfo.uuid,
+    );
+    return tokens;
   }
 
-  login(user: Omit<User, 'password'>): { access_token: string } {
-    const payload = { username: user.name, sub: user.id };
+  async issueTokens(
+    uuid: string,
+  ): Promise<{ access_token: string; refresh_token: string }> {
+    const accessToken = await this.jwtService.signAsync({ sub: uuid });
+    const refreshToken = await this.jwtService.signAsync(
+      { sub: uuid, type: 'refresh' },
+      { expiresIn: '7d' },
+    );
+
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: accessToken,
+      refresh_token: refreshToken,
     };
   }
 
-  async googleLogin(googleUser: GoogleUser) {
-    if (!googleUser) {
-      throw new BadRequestException('Unauthenticated');
-    }
-
-    let user = await this.usersService.findOneByEmail(googleUser.email);
-
-    if (!user) {
-      const password = Math.random();
-
-      user = await this.usersService.create({
-        email: googleUser.email,
-        name: `${googleUser.lastName}${googleUser.firstName}`,
-        password: `${password}`,
-      });
-    }
-
-    return this.login(user);
+  async logout(refreshToken: string): Promise<void> {
+    await this.authRepository.del(refreshToken);
   }
 }

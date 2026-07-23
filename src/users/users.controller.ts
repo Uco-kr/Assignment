@@ -1,32 +1,13 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  ParseIntPipe,
-  Patch,
-  Post,
-} from '@nestjs/common';
+import { Body, Controller } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/CreateUserDto';
-import { UpdateUserDto } from './dto/UpdateUserDto';
+import { JwtTokenDto } from '../auth/dto/JwtTokenDto';
+import { RegisterUserDto } from './dto/RegisterUserDto';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UsersService) {}
 
-  @Post()
-  create(@Body() data: CreateUserDto) {
-    return this.userService.create(data);
-  }
-
-  @Patch(':id')
-  update(@Param('id', ParseIntPipe) uuid: string, @Body() data: UpdateUserDto) {
-    return this.userService.updateUser(uuid, data);
-  }
-
-  @Get(':name')
-  findOne(@Param('name') name: string) {
-    return this.userService.findOne(name);
+  async registerUser(@Body() body: RegisterUserDto): Promise<JwtTokenDto> {
+    return await this.userService.registerUser(body.name);
   }
 }

@@ -3,7 +3,6 @@ import {
   Controller,
   Post,
   Get,
-  ParseIntPipe,
   Param,
   Patch,
   Delete,
@@ -20,24 +19,22 @@ import {
   ApiOperation,
   ApiParam,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
-import { User } from '@prisma/client';
-
+import { Posts, User } from '@prisma/client';
 @ApiTags('post')
 @Controller('post')
 export class PostsController {
   constructor(private readonly postservice: PostsService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post(':authorId')
   @ApiCreatedResponse({
     description: '게시글이 성공적으로 생성되었습니다.',
   })
   @ApiOperation({ summary: '게시글 작성' })
-  create(
-    @Param('authorId', ParseIntPipe) id: number,
-    @Body() created: CreatePostDto,
-  ) {
+  create(@Param('authorId') id: string, @Body() created: CreatePostDto) {
     return this.postservice.create(id, created);
   }
 
@@ -56,7 +53,7 @@ export class PostsController {
     name: 'id',
     description: '작성자 ID',
   })
-  findByAuthorID(@Param('id', ParseIntPipe) id: number) {
+  findByAuthorID(@Param('id') id: string) {
     return this.postservice.findByAuthorID(id);
   }
 
@@ -68,7 +65,7 @@ export class PostsController {
     name: 'id',
     description: '게시글 ID',
   })
-  findByPostID(@Param('id', ParseIntPipe) id: number) {
+  findByPostID(@Param('id') id: string) {
     return this.postservice.findByPostID(id);
   }
 
@@ -86,11 +83,11 @@ export class PostsController {
     description: '게시글 ID',
   })
   updatePost(
-    @Param('id', ParseIntPipe) id: number,
-    @Request() req: Request & { user: Omit<User, 'password'> },
+    @Param('id') id: string,
+    @Request() req: Request & { user: User },
     @Body() update: UpdatePostDto,
   ) {
-    return this.postservice.updatePost(id, req.user.id, update);
+    return this.postservice.updatePost(id, req.user.uuid, update);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -103,9 +100,29 @@ export class PostsController {
     description: '게시글 ID',
   })
   deletePost(
-    @Param('id', ParseIntPipe) id: number,
-    @Request() req: Request & { user: Omit<User, 'password'> },
+    @Param('id') id: string,
+    @Request() req: Request & { user: User },
   ) {
-    return this.postservice.deletePost(id, req.user.id);
+    return this.postservice.deletePost(id, req.user.uuid);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('categorize/:id')
+  @ApiOperation({
+    summary: '게시글 카테고리 지정',
+    description:
+      '게시글 ID와 카테고리 ID를 받아 게시글의 카테고리를 설정합니다.',
+  })
+  @ApiCreatedResponse({
+    description: '카테고리 지정 완료된 게시글 반환',
+  })
+  @ApiUnauthorizedResponse({ description: '인증되지 않은 요청' })
+  @ApiNotFoundResponse({ description: '게시글 또는 카테고리를 찾을 수 없음' })
+  @Post('categorize/:id/:category_id') // 👈 URL 파라미터 2개 정의!
+  async categorize(
+    @Param('id') id: string, // 게시글 ID
+    @Param('category_id') category_id: string, // 카테고리 ID
+  ): Promise<Posts> {
+    return await this.postservice.categorize(id, category_id);
   }
 }

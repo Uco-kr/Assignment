@@ -13,12 +13,12 @@ model User {
   name          String         @unique
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
-  posts         Post[]
+  posts         Posts[]
   UserCategory  UserCategory[]
   RefreshTokens RefreshToken[]
 }
 
-model Post {
+model Posts {
   uuid         String         @id @default(uuid()) @db.Uuid
   title        String
   content      String
@@ -39,7 +39,7 @@ model Category {
 model PostCategory {
   postId     String   @db.Uuid
   categoryId String   @db.Uuid
-  post       Post     @relation(fields: [postId], references: [uuid])
+  post       Posts    @relation(fields: [postId], references: [uuid])
   category   Category @relation(fields: [categoryId], references: [uuid])
 
   @@id([postId, categoryId])

@@ -8,7 +8,7 @@ import { Repository } from './repository';
 export class PostsService {
   constructor(private readonly repo: Repository) {}
 
-  async create(authorId: string, data: CreatePostDto): Promise<Post> {
+  async create(authorId: string, data: CreatePostDto): Promise<Posts> {
     const createDate = { ...data, authorId: authorId };
     return await this.repo.create(createDate);
   }
@@ -48,7 +48,7 @@ export class PostsService {
     return { message: `Id가 ${id}인 게시글을 삭제하였습니다.` };
   }
 
-  async categorize(id: string, category_id: string): Promise<Post> {
+  async categorize(id: string, category_id: string): Promise<Posts> {
     return await this.repo.categorize(id, category_id);
   }
 }

@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { CreatePostDto } from './dto/CreatePostDto';
-import { Post } from '@prisma/client';
+import { Posts } from '@prisma/client';
 import { UpdatePostDto } from './dto/UpdatePostDto';
 import { Repository } from './repository';
 
@@ -13,16 +13,16 @@ export class PostsService {
     return await this.repo.create(createDate);
   }
 
-  async findAll(): Promise<Post[]> {
+  async findAll(): Promise<Posts[]> {
     return await this.repo.findAll();
   }
 
-  async findByPostID(id: string): Promise<Post> {
+  async findByPostID(id: string): Promise<Posts> {
     const postIDpost = await this.repo.findByPostID(id);
     return postIDpost;
   }
 
-  async findByAuthorID(id: string): Promise<Post[]> {
+  async findByAuthorID(id: string): Promise<Posts[]> {
     const userIDpost = this.repo.findByAuthorID(id);
     return userIDpost;
   }
@@ -31,7 +31,7 @@ export class PostsService {
     id: string,
     userId: string,
     data: UpdatePostDto,
-  ): Promise<Post> {
+  ): Promise<Posts> {
     const Post = await this.repo.findByPostID(id);
     if (Post.authorId !== userId) {
       throw new ForbiddenException('수정 권한이 없습니다.');

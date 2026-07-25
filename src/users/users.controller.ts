@@ -1,32 +1,31 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  ParseIntPipe,
-  Patch,
-  Post,
-} from '@nestjs/common';
+import { Controller, Param, Post, UseGuards, Req } from '@nestjs/common';
+import type { Request } from 'express';
 import { UsersService } from './users.service';
-import { CreateUserDto } from '../dto/CreateUserDto';
-import { UpdateUserDto } from '../dto/UpdateUserDto';
-
+import {
+  ApiInternalServerErrorResponse,
+  ApiCreatedResponse,
+  ApiOperation,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
+import type { User } from '@prisma/client';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UsersService) {}
 
-  @Post()
-  create(@Body() data: CreateUserDto) {
-    return this.userService.create(data);
-  }
-
-  @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateUserDto) {
-    return this.userService.updateUser(id, data);
-  }
-
-  @Get(':name')
-  findOne(@Param('name') name: string) {
-    return this.userService.findOne(name);
+  @ApiOperation({
+    summary: 'subscribe category',
+    description: 'subscribe category',
+  })
+  @ApiCreatedResponse({ description: 'Return user' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+  @Post('subscribe/:categoryId')
+  @UseGuards(JwtAuthGuard)
+  async subscribe(
+    @Req() req: Request & { user: { uuid: string } },
+    @Param('categoryId') categoryId: string,
+  ): Promise<User> {
+    return await this.userService.subscribe(req.user.uuid, categoryId);
   }
 }

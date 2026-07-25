@@ -2,22 +2,24 @@ import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
 import { PassportModule } from '@nestjs/passport';
-import { LocalStrategy } from './local.strategy';
 import { JwtModule } from '@nestjs/jwt';
-import { jwtConstants } from './constants';
-import { JwtStrategy } from './jwt.strategy';
 import { AuthController } from './auth.controller';
-
+import { JwtStrategy } from './guard/jwt.strategy';
+import { authRepository } from './auth.repository';
+import { InfoteamAccountModule } from '../infoteam-account/infoeam-account.module';
+import { ConfigModule } from '@nestjs/config';
 @Module({
   imports: [
+    ConfigModule,
     UsersModule,
     PassportModule,
+    InfoteamAccountModule,
     JwtModule.register({
-      secret: jwtConstants.secret,
-      signOptions: { expiresIn: '60m' },
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: '1d' },
     }),
   ],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  providers: [AuthService, JwtStrategy, authRepository],
   exports: [AuthService],
   controllers: [AuthController],
 })

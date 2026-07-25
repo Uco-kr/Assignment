@@ -8,21 +8,58 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  name      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  posts     Post[]
+  uuid          String         @id @db.Uuid
+  email         String         @unique
+  name          String         @unique
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  posts         Posts[]
+  UserCategory  UserCategory[]
+  RefreshTokens RefreshToken[]
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
-  title     String
-  content   String
-  authorId  Int
+model Posts {
+  uuid         String         @id @default(uuid()) @db.Uuid
+  title        String
+  content      String
+  authorId     String         @db.Uuid
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  author       User           @relation(fields: [authorId], references: [uuid])
+  PostCategory PostCategory[]
+}
+
+model Category {
+  uuid  String         @id @default(uuid()) @db.Uuid
+  name  String         @unique
+  posts PostCategory[]
+  users UserCategory[]
+}
+
+model PostCategory {
+  postId     String   @db.Uuid
+  categoryId String   @db.Uuid
+  post       Posts    @relation(fields: [postId], references: [uuid])
+  category   Category @relation(fields: [categoryId], references: [uuid])
+
+  @@id([postId, categoryId])
+}
+
+model UserCategory {
+  userId     String   @db.Uuid
+  categoryId String   @db.Uuid
+  user       User     @relation(fields: [userId], references: [uuid])
+  category   Category @relation(fields: [categoryId], references: [uuid])
+
+  @@id([userId, categoryId])
+}
+
+model RefreshToken {
+  uuid      String   @id @default(uuid()) @db.Uuid
+  token     String   @unique
+  userId    String   @db.Uuid
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  author    User     @relation(fields: [authorId], references: [id])
+  user      User     @relation(fields: [userId], references: [uuid])
+  expiresAt DateTime
 }

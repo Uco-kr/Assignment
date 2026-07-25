@@ -1,26 +1,27 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
-export class UpdateUserDto {
+export class UpdatePostDto {
   @ApiPropertyOptional({
-    description: '유저의 id',
+    description: '게시글의 제목',
     type: String,
     minLength: 1,
     nullable: true,
   })
-  name!: string;
+  title?: string;
 
   @ApiPropertyOptional({
-    description: '유저의 비밀번호',
+    description: '게시글의 내용',
     type: String,
-    minLength: 8,
+    minLength: 1,
     nullable: true,
   })
-  password!: string;
+  content?: string;
 
   @ApiPropertyOptional({
-    description: '유저의 이메일',
+    description: '게시글의 카테고리의 uuid',
     type: String,
+    minLength: 1,
     nullable: true,
   })
-  email!: string;
+  category_id?: string;
 }

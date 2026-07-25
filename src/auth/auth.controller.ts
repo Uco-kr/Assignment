@@ -33,14 +33,16 @@ export class AuthController {
   @ApiOkResponse({ type: JwtTokenDto, description: 'Return Jwt Token' })
   @ApiUnauthorizedResponse({ description: 'Unathorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-  @ApiOAuth2(['email', 'name'])
+  @ApiOAuth2(['email', 'name'], 'oauth2')
   @Post('login')
   async login(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<JwtTokenDto> {
+    console.log('0. /auth/login controller 진입');
     //아래코드에서 as string | undefined 없으면 오류 발생, 왜? -> 내 생각에는 undefined 안 받으려는 것 같음
-    const auth = req.header['authorization'] as string | undefined;
+    const auth = req.headers.authorization;
+    console.log('Authorization 존재 여부:', Boolean(auth));
     if (!auth) {
       throw new UnauthorizedException();
     }

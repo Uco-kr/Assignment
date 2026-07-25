@@ -8,7 +8,9 @@ import { Posts } from '@prisma/client';
 export class Repository {
   constructor(private prisma: PrismaService) {}
 
-  async create(create: CreatePostDto & { authorId: string }): Promise<Posts> {
+  async create(
+    create: Omit<CreatePostDto, 'category_id'> & { authorId: string },
+  ): Promise<Posts> {
     return await this.prisma.posts.create({ data: create });
   }
 
@@ -34,7 +36,10 @@ export class Repository {
     return Post;
   }
 
-  async updatePost(id: string, data: UpdatePostDto): Promise<Posts> {
+  async updatePost(
+    id: string,
+    data: Omit<UpdatePostDto, 'category_id'>,
+  ): Promise<Posts> {
     return this.prisma.posts.update({ where: { uuid: id }, data: data });
   }
 

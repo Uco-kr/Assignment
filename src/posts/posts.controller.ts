@@ -30,7 +30,7 @@ export class PostsController {
   constructor(private readonly postservice: PostsService) {}
 
   @UseGuards(JwtAuthGuard)
-  @Post(':authorId')
+  @Post()
   @ApiCreatedResponse({
     description: '게시글이 성공적으로 생성되었습니다.',
   })

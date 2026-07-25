@@ -16,4 +16,12 @@ export class UpdatePostDto {
     nullable: true,
   })
   content?: string;
+
+  @ApiPropertyOptional({
+    description: '게시글의 카테고리의 uuid',
+    type: String,
+    minLength: 1,
+    nullable: true,
+  })
+  category_id?: string;
 }

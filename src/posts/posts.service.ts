@@ -8,9 +8,14 @@ import { Repository } from './repository';
 export class PostsService {
   constructor(private readonly repo: Repository) {}
 
-  async create(authorId: string, data: CreatePostDto): Promise<Posts> {
-    const createDate = { ...data, authorId: authorId };
-    return await this.repo.create(createDate);
+  async create(authorId: string, dto: CreatePostDto): Promise<Posts> {
+    const { category_id, ...data } = dto;
+    const createData = { ...data, authorId: authorId };
+    const post = await this.repo.create(createData);
+    if (category_id) {
+      await this.categorize(post.uuid, category_id, authorId);
+    }
+    return await this.repo.create(createData);
   }
 
   async findAll(): Promise<Posts[]> {
@@ -30,12 +35,17 @@ export class PostsService {
   async updatePost(
     id: string,
     userId: string,
-    data: UpdatePostDto,
+    dto: UpdatePostDto,
   ): Promise<Posts> {
     const Post = await this.repo.findByPostID(id);
     if (Post.authorId !== userId) {
       throw new ForbiddenException('수정 권한이 없습니다.');
     }
+    const { category_id, ...data } = dto;
+    if (category_id) {
+      await this.categorize(id, category_id, userId);
+    }
+
     return await this.repo.updatePost(id, data);
   }
 

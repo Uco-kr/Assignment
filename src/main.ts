@@ -10,7 +10,6 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // 👈 2. 쿠키 파서 미들웨어 등록 (req.cookies 사용 가능하게 설정)
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   app.use(cookieParser());
 
   // 3. Swagger 문서 및 OAuth2 설정 정의

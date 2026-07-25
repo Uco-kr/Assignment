@@ -7,11 +7,12 @@ import {
   Patch,
   Delete,
   UseGuards,
-  Request,
+  Req,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/CreatePostDto';
 import { UpdatePostDto } from './dto/UpdatePostDto';
+import type { Request } from 'express';
 import {
   ApiCreatedResponse,
   ApiNotFoundResponse,
@@ -34,8 +35,8 @@ export class PostsController {
     description: '게시글이 성공적으로 생성되었습니다.',
   })
   @ApiOperation({ summary: '게시글 작성' })
-  create(@Param('authorId') id: string, @Body() created: CreatePostDto) {
-    return this.postservice.create(id, created);
+  create(@Req() req: Request & { user: User }, @Body() created: CreatePostDto) {
+    return this.postservice.create(req.user.uuid, created);
   }
 
   @Get()
@@ -84,7 +85,7 @@ export class PostsController {
   })
   updatePost(
     @Param('id') id: string,
-    @Request() req: Request & { user: User },
+    @Req() req: Request & { user: User },
     @Body() update: UpdatePostDto,
   ) {
     return this.postservice.updatePost(id, req.user.uuid, update);
@@ -99,15 +100,11 @@ export class PostsController {
     name: 'id',
     description: '게시글 ID',
   })
-  deletePost(
-    @Param('id') id: string,
-    @Request() req: Request & { user: User },
-  ) {
+  deletePost(@Param('id') id: string, @Req() req: Request & { user: User }) {
     return this.postservice.deletePost(id, req.user.uuid);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('categorize/:id')
   @ApiOperation({
     summary: '게시글 카테고리 지정',
     description:
@@ -118,11 +115,16 @@ export class PostsController {
   })
   @ApiUnauthorizedResponse({ description: '인증되지 않은 요청' })
   @ApiNotFoundResponse({ description: '게시글 또는 카테고리를 찾을 수 없음' })
-  @Post('categorize/:id/:category_id') // 👈 URL 파라미터 2개 정의!
+  @Post('categorize/:id/:category_id')
   async categorize(
-    @Param('id') id: string, // 게시글 ID
+    @Req() req: Request & { user: User },
+    @Param('id') PostId: string, // 게시글 ID
     @Param('category_id') category_id: string, // 카테고리 ID
   ): Promise<Posts> {
-    return await this.postservice.categorize(id, category_id);
+    return await this.postservice.categorize(
+      PostId,
+      category_id,
+      req.user.uuid,
+    );
   }
 }

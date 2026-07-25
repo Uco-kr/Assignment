@@ -19,7 +19,7 @@ export class authRepository {
           name: userInfo.name,
           email: userInfo.email,
         },
-        update: { uuid: userInfo.name, email: userInfo.email },
+        update: { name: userInfo.name, email: userInfo.email },
       })
       .catch((err) => {
         if (err instanceof Prisma.PrismaClientKnownRequestError) {

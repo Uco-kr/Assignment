@@ -6,7 +6,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './guard/jwt.strategy';
 import { authRepository } from './auth.repository';
-import { InfoteamAccountModule } from '../infoteam-account/infoema-accoutn.module';
+import { InfoteamAccountModule } from '../infoteam-account/infoeam-account.module';
 import { ConfigModule } from '@nestjs/config';
 @Module({
   imports: [
@@ -15,7 +15,7 @@ import { ConfigModule } from '@nestjs/config';
     PassportModule,
     InfoteamAccountModule,
     JwtModule.register({
-      secret: process.env.JWT_secret,
+      secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '1d' },
     }),
   ],

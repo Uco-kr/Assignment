@@ -33,7 +33,7 @@ export class AuthController {
   @ApiOkResponse({ type: JwtTokenDto, description: 'Return Jwt Token' })
   @ApiUnauthorizedResponse({ description: 'Unathorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-  @ApiOAuth2(['email', 'openid', 'name'])
+  @ApiOAuth2(['email', 'name'])
   @Post('login')
   async login(
     @Req() req: Request,
@@ -49,7 +49,7 @@ export class AuthController {
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
-      expires: new Date(Date.now() + 15000000),
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       path: '/auth',
     });
     return { access_token };
@@ -75,7 +75,7 @@ export class AuthController {
       throw new UnauthorizedException();
     }
 
-    res.clearCookie('refresh_token');
+    res.clearCookie('refresh_token', { path: '/auth' });
     return await this.authService.logout(refreshToken);
   }
 }

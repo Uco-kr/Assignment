@@ -48,7 +48,15 @@ export class PostsService {
     return { message: `Id가 ${id}인 게시글을 삭제하였습니다.` };
   }
 
-  async categorize(id: string, category_id: string): Promise<Posts> {
-    return await this.repo.categorize(id, category_id);
+  async categorize(
+    PostId: string,
+    category_id: string,
+    userId: string,
+  ): Promise<Posts> {
+    const post = await this.repo.findByPostID(PostId);
+    if (post.authorId !== userId) {
+      throw new ForbiddenException('수정권한이 없습니다.');
+    }
+    return await this.repo.categorize(PostId, category_id);
   }
 }

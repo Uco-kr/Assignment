@@ -16,7 +16,7 @@ export class AuthService {
   async login(
     auth: string,
   ): Promise<{ access_token: string; refresh_token: string }> {
-    const idpToken = auth.split('')[1];
+    const idpToken = auth.split(' ')[1];
     const userInfo = await this.infoteamAccountService.getUserInfo(idpToken);
     const user = await this.authRepository
       .findUserOrCreate(userInfo)
@@ -34,7 +34,10 @@ export class AuthService {
   async issueTokens(
     uuid: string,
   ): Promise<{ access_token: string; refresh_token: string }> {
-    const accessToken = await this.jwtService.signAsync({ sub: uuid });
+    const accessToken = await this.jwtService.signAsync({
+      sub: uuid,
+      type: 'access',
+    });
     const refreshToken = await this.jwtService.signAsync(
       { sub: uuid, type: 'refresh' },
       { expiresIn: '7d' },

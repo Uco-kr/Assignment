@@ -42,9 +42,9 @@ export class Repository {
     await this.prisma.posts.delete({ where: { uuid: id } });
   }
 
-  async categorize(id: string, category_id: string): Promise<Posts> {
+  async categorize(PostId: string, category_id: string): Promise<Posts> {
     const categorizer = await this.prisma.postCategory.create({
-      data: { postId: id, categoryId: category_id },
+      data: { postId: PostId, categoryId: category_id },
       include: { post: true },
     });
     return categorizer.post;

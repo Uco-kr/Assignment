@@ -24,9 +24,9 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
-  async validate({ sub }: JwtPayload) {
-    if (!sub) throw new UnauthorizedException('invalid token');
-    return await this.userService.findUserByUuid(sub).catch(() => {
+  async validate(payload: JwtPayload) {
+    if (!payload.sub) throw new UnauthorizedException('invalid token');
+    return await this.userService.findUserByUuid(payload.sub).catch(() => {
       throw new UnauthorizedException();
     });
   }

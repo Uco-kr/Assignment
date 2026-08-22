@@ -3,9 +3,10 @@ import { PostsController } from './posts.controller';
 import { PostsService } from './posts.service';
 import { Repository } from './repository';
 import { PrismaModule } from '../prisma/prisma.module';
+import { AlarmModule } from '../alarm/alarm.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, AlarmModule],
   controllers: [PostsController],
   providers: [PostsService, Repository],
 })

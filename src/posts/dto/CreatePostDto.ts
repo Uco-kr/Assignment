@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreatePostDto {
   @ApiProperty({
@@ -17,11 +17,11 @@ export class CreatePostDto {
   })
   content!: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: '게시글의 카테고리의 uuid',
     type: String,
-    minLength: 1,
+    isArray: true,
     nullable: true,
   })
-  category_id!: string;
+  category_id?: string[];
 }

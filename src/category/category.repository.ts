@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Category } from '@prisma/client';
-import { User } from '@prisma/client';
 
 @Injectable()
 export class CategoryRepository {
@@ -15,11 +14,14 @@ export class CategoryRepository {
     await this.prisma.category.delete({ where: { uuid: id } });
   }
 
-  async FindSubscribeUser(id: string): Promise<User[] | null> {
+  async FindSubscribeUser(id: string): Promise<string[]> {
     const category = await this.prisma.category.findUnique({
       where: { uuid: id },
-      include: { users: { include: { user: true } } },
+      select: { users: { select: { user: { select: { uuid: true } } } } },
     });
-    return category?.users?.map((subscription) => subscription.user) ?? null;
+    if (!category) {
+      return [];
+    }
+    return category?.users?.map((subscription) => subscription.user.uuid);
   }
 }

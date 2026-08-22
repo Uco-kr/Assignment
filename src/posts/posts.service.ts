@@ -3,23 +3,29 @@ import { CreatePostDto } from './dto/CreatePostDto';
 import { Posts } from '@prisma/client';
 import { UpdatePostDto } from './dto/UpdatePostDto';
 import { Repository } from './repository';
+import { AlarmService } from '../alarm/alarm.service';
+import { CategoryService } from '../category/category.service';
 
 @Injectable()
 export class PostsService {
-  constructor(private readonly repo: Repository) {}
+  constructor(
+    private readonly repo: Repository,
+    private readonly alarmService: AlarmService,
+    private readonly categoryService: CategoryService,
+  ) {}
 
   async create(authorId: string, dto: CreatePostDto): Promise<Posts> {
     const { category_id, ...data } = dto;
     const createData = { ...data, authorId: authorId };
     const post = await this.repo.create(createData);
     if (category_id) {
-      await this.categorize(post.uuid, category_id, authorId);
+      for (const category of category_id) {
+        await this.categorize(post.uuid, category, authorId);
+      }
+      await this.pushAlarm(category_id);
     }
-    return await this.repo.create(createData);
-  }
 
-  async findAll(): Promise<Posts[]> {
-    return await this.repo.findAll();
+    return await this.repo.create(createData);
   }
 
   async findByPostID(id: string): Promise<Posts> {
@@ -43,9 +49,11 @@ export class PostsService {
     }
     const { category_id, ...data } = dto;
     if (category_id) {
-      await this.categorize(id, category_id, userId);
+      for (const category of category_id) {
+        await this.categorize(id, category, userId);
+      }
+      await this.pushAlarm(category_id);
     }
-
     return await this.repo.updatePost(id, data);
   }
 
@@ -68,5 +76,16 @@ export class PostsService {
       throw new ForbiddenException('수정권한이 없습니다.');
     }
     return await this.repo.categorize(PostId, category_id);
+  }
+
+  async pushAlarm(categoryId: string[]) {
+    const [users] = await Promise.all(
+      categoryId.map(
+        async (category: string) =>
+          await this.categoryService.FindSubscribeUser(category),
+      ),
+    );
+    const deviceId = Array.from(new Set(users));
+    await this.alarmService.push(deviceId);
   }
 }

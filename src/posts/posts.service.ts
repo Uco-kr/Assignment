@@ -21,7 +21,6 @@ export class PostsService {
   async create(authorId: string, dto: CreatePostDto): Promise<Posts> {
     const { category_id, ...data } = dto;
     const createData = { ...data, authorId: authorId };
-    const post = await this.repo.create(createData);
     if (category_id) {
       const existedCategory = await this.categoryService.getCategory();
       const isCategoryValid = category_id.every((category) =>
@@ -30,6 +29,7 @@ export class PostsService {
       if (!isCategoryValid) {
         throw new BadRequestException('존재하지 않은 카테고리 입니다');
       }
+      const post = await this.repo.create(createData);
       await Promise.all(
         category_id.map((category) =>
           this.categorize(post.uuid, category, authorId),

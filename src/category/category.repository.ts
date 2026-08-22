@@ -24,4 +24,9 @@ export class CategoryRepository {
     }
     return category?.users?.map((subscription) => subscription.user.uuid);
   }
+
+  async getCategory(): Promise<string[]> {
+    const category = await this.prisma.category.findMany();
+    return category.map((category) => category.name);
+  }
 }

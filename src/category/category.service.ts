@@ -21,4 +21,8 @@ export class CategoryService {
     }
     return users;
   }
+
+  async getCategory(): Promise<string[]> {
+    return await this.repo.getCategory();
+  }
 }

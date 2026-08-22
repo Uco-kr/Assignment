@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { CreatePostDto } from './dto/CreatePostDto';
 import { Posts } from '@prisma/client';
 import { UpdatePostDto } from './dto/UpdatePostDto';
@@ -19,9 +23,18 @@ export class PostsService {
     const createData = { ...data, authorId: authorId };
     const post = await this.repo.create(createData);
     if (category_id) {
-      for (const category of category_id) {
-        await this.categorize(post.uuid, category, authorId);
+      const existedCategory = await this.categoryService.getCategory();
+      const isCategoryValid = category_id.every((category) =>
+        existedCategory.includes(category),
+      );
+      if (!isCategoryValid) {
+        throw new BadRequestException('존재하지 않은 카테고리 입니다');
       }
+      await Promise.all(
+        category_id.map((category) =>
+          this.categorize(post.uuid, category, authorId),
+        ),
+      );
       await this.pushAlarm(category_id);
     }
 

@@ -39,13 +39,6 @@ export class PostsController {
     return this.postservice.create(req.user.uuid, created);
   }
 
-  @Get()
-  @ApiOperation({ summary: '모든 게시글 가져오기' })
-  @ApiOkResponse({ description: '게시글 찾기 성공' })
-  findAll() {
-    return this.postservice.findAll();
-  }
-
   @Get('author/:id')
   @ApiOperation({ summary: '유저 ID기반 게시글 가져오기' })
   @ApiNotFoundResponse({ description: '게시글을 찾을 수 없습니다.' })

@@ -62,9 +62,16 @@ export class PostsService {
     }
     const { category_id, ...data } = dto;
     if (category_id) {
-      for (const category of category_id) {
-        await this.categorize(id, category, userId);
+      const existedCategory = await this.categoryService.getCategory();
+      const isCategoryValid = category_id.every((category) =>
+        existedCategory.includes(category),
+      );
+      if (!isCategoryValid) {
+        throw new BadRequestException('존재하지 않은 카테고리 입니다');
       }
+      await Promise.all(
+        category_id.map((category) => this.categorize(id, category, userId)),
+      );
       await this.pushAlarm(category_id);
     }
     return await this.repo.updatePost(id, data);

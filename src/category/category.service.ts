@@ -1,6 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CategoryRepository } from './category.repository';
 import { Category } from '@prisma/client';
+import { getPostCount } from './dto/getPostCountDto';
+import { getUserCount } from './dto/getUserCountDto';
+import { getSubscribedCategoryDto } from './dto/GetSubscribedCategoryDto';
 
 @Injectable()
 export class CategoryService {
@@ -22,7 +25,43 @@ export class CategoryService {
     return users;
   }
 
-  async getCategory(): Promise<string[]> {
-    return await this.repo.getCategory();
+  async getCategoryId(): Promise<string[]> {
+    return await this.repo.getCategoryId();
+  }
+
+  async getNameById(id: string): Promise<string> {
+    return await this.repo.getNameById(id);
+  }
+
+  async getPostCount(): Promise<getPostCount[]> {
+    return await this.repo.getPostCount();
+  }
+
+  async getUserCount(): Promise<getUserCount[]> {
+    return await this.repo.getUserCount();
+  }
+
+  async getCategorySubscribing(
+    id: string,
+  ): Promise<getSubscribedCategoryDto[]> {
+    const categoryIds = await this.repo.getSubscribedCategoryId(id);
+    const postCounts = await this.getPostCount();
+
+    const result = await Promise.all(
+      categoryIds.map(async (categoryId) => {
+        const categoryName = await this.getNameById(categoryId);
+
+        const count =
+          postCounts.find((item) => item.uuid === categoryId)?.count ?? 0;
+
+        return {
+          name: categoryId,
+          uuid: categoryName,
+          count: count,
+        };
+      }),
+    );
+
+    return result;
   }
 }

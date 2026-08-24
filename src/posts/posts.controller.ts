@@ -8,12 +8,14 @@ import {
   Delete,
   UseGuards,
   Req,
+  Query,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/CreatePostDto';
 import { UpdatePostDto } from './dto/UpdatePostDto';
 import type { Request } from 'express';
 import {
+  ApiBearerAuth,
   ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -23,12 +25,13 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
-import { Posts, User } from '@prisma/client';
+import { User } from '@prisma/client';
 @ApiTags('post')
 @Controller('post')
 export class PostsController {
   constructor(private readonly postservice: PostsService) {}
 
+  @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
   @Post()
   @ApiCreatedResponse({
@@ -63,6 +66,7 @@ export class PostsController {
     return this.postservice.findByPostID(id);
   }
 
+  @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
   @ApiOperation({ summary: '게시글 업데이트' })
@@ -84,6 +88,7 @@ export class PostsController {
     return this.postservice.updatePost(id, req.user.uuid, update);
   }
 
+  @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   @ApiOperation({ summary: '게시글 삭제' })
@@ -97,6 +102,7 @@ export class PostsController {
     return this.postservice.deletePost(id, req.user.uuid);
   }
 
+  @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: '게시글 카테고리 지정',
@@ -113,11 +119,20 @@ export class PostsController {
     @Req() req: Request & { user: User },
     @Param('id') PostId: string, // 게시글 ID
     @Param('category_id') category_id: string, // 카테고리 ID
-  ): Promise<Posts> {
+  ) {
     return await this.postservice.categorize(
       PostId,
       category_id,
       req.user.uuid,
     );
+  }
+
+  @Get('getOwnPost')
+  async getOwnPost(
+    @Req() req: Request & { user: User },
+    @Query('skip') skip: number,
+    @Query('take') take: number,
+  ) {
+    return await this.postservice.getOwnPost(req.user.uuid, skip, take);
   }
 }

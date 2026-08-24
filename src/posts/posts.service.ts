@@ -22,7 +22,7 @@ export class PostsService {
     const { category_id, ...data } = dto;
     const createData = { ...data, authorId: authorId };
     if (category_id) {
-      const existedCategory = await this.categoryService.getCategory();
+      const existedCategory = await this.categoryService.getCategoryId();
       const isCategoryValid = category_id.every((category) =>
         existedCategory.includes(category),
       );
@@ -36,6 +36,7 @@ export class PostsService {
         ),
       );
       await this.pushAlarm(category_id);
+      return post;
     }
 
     return await this.repo.create(createData);
@@ -62,7 +63,7 @@ export class PostsService {
     }
     const { category_id, ...data } = dto;
     if (category_id) {
-      const existedCategory = await this.categoryService.getCategory();
+      const existedCategory = await this.categoryService.getCategoryId();
       const isCategoryValid = category_id.every((category) =>
         existedCategory.includes(category),
       );
@@ -107,5 +108,9 @@ export class PostsService {
     );
     const deviceId = Array.from(new Set(users));
     await this.alarmService.push(deviceId);
+  }
+
+  async getOwnPost(id: string, skip: number, take: number): Promise<Posts[]> {
+    return await this.repo.getOwnPost(id, skip, take);
   }
 }

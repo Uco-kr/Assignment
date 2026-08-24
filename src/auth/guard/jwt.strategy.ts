@@ -25,8 +25,12 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload: JwtPayload) {
-    if (!payload.sub) throw new UnauthorizedException('invalid token');
-    return await this.userService.findUserByUuid(payload.sub).catch(() => {
+    if (!payload.sub) {
+      console.log('payload.sub 가 없습니다.');
+      throw new UnauthorizedException('invalid token');
+    }
+    return await this.userService.findUserByUuid(payload.sub).catch((err) => {
+      console.log('DB조회 실패:', err);
       throw new UnauthorizedException();
     });
   }

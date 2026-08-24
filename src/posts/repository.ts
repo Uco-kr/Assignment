@@ -19,7 +19,10 @@ export class Repository {
   }
 
   async findByPostID(id: string): Promise<Posts> {
-    const Post = await this.prisma.posts.findUnique({ where: { uuid: id } });
+    const Post = await this.prisma.posts.findUnique({
+      where: { uuid: id },
+      include: { PostCategory: { select: { categoryId: true } } },
+    });
     if (!Post) {
       throw new NotFoundException(`id가 ${id}인 게시물이 없습니다.`);
     }
@@ -27,7 +30,10 @@ export class Repository {
   }
 
   async findByAuthorID(id: string): Promise<Posts[]> {
-    const Post = await this.prisma.posts.findMany({ where: { authorId: id } });
+    const Post = await this.prisma.posts.findMany({
+      where: { authorId: id },
+      include: { PostCategory: { select: { category: true } } },
+    });
     if (!Post.length) {
       throw new NotFoundException(
         `id가 ${id}인 USER가 작성한 게시물이 없습니다.`,
@@ -53,5 +59,13 @@ export class Repository {
       include: { post: true },
     });
     return categorizer.post;
+  }
+
+  async getOwnPost(id: string, skip: number, take: number) {
+    return await this.prisma.posts.findMany({
+      where: { authorId: id },
+      take: take,
+      skip: skip,
+    });
   }
 }

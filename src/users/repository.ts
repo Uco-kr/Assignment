@@ -29,4 +29,12 @@ export class Repository {
 
     return subscriber.user;
   }
+
+  async getMe(id: string): Promise<User> {
+    const user = await this.prisma.user.findUnique({ where: { uuid: id } });
+    if (!user) {
+      throw new NotFoundException(`id가 조회되지 않습니다.`);
+    }
+    return user;
+  }
 }

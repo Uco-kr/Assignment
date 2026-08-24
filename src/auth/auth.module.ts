@@ -7,16 +7,20 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './guard/jwt.strategy';
 import { authRepository } from './auth.repository';
 import { InfoteamAccountModule } from '../infoteam-account/infoeam-account.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 @Module({
   imports: [
     ConfigModule,
     UsersModule,
     PassportModule,
     InfoteamAccountModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '1d' },
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: { expiresIn: '1d' },
+      }),
     }),
   ],
   providers: [AuthService, JwtStrategy, authRepository],

@@ -2,40 +2,31 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { CreatePostDto } from './dto/CreatePostDto';
 import { Posts } from '@prisma/client';
 import { UpdatePostDto } from './dto/UpdatePostDto';
-import { Repository } from './repository';
+import { PostRepository } from './posts.repository';
 import { AlarmService } from '../alarm/alarm.service';
 import { CategoryService } from '../category/category.service';
 
 @Injectable()
 export class PostsService {
   constructor(
-    private readonly repo: Repository,
+    private readonly repo: PostRepository,
     private readonly alarmService: AlarmService,
     private readonly categoryService: CategoryService,
   ) {}
 
   async create(authorId: string, dto: CreatePostDto): Promise<Posts> {
-    const { category_id, ...data } = dto;
+    const { categoryIds, ...data } = dto;
     const createData = { ...data, authorId: authorId };
-    if (category_id) {
-      const existedCategory = await this.categoryService.getCategoryId();
-      const isCategoryValid = category_id.every((category) =>
-        existedCategory.includes(category),
-      );
-      if (!isCategoryValid) {
-        throw new BadRequestException('존재하지 않은 카테고리 입니다');
-      }
+    if (categoryIds) {
+      await this.validateCategory(categoryIds);
       const post = await this.repo.create(createData);
-      await Promise.all(
-        category_id.map((category) =>
-          this.categorize(post.uuid, category, authorId),
-        ),
-      );
-      await this.pushAlarm(category_id);
+      await this.categorize(post.uuid, categoryIds, authorId);
+      await this.pushAlarm(categoryIds);
       return post;
     }
 
@@ -44,6 +35,9 @@ export class PostsService {
 
   async findByPostID(id: string): Promise<Posts> {
     const postIDpost = await this.repo.findByPostID(id);
+    if (!postIDpost) {
+      throw new NotFoundException(`해당 ID를 가진 게시글이 없습니다.`);
+    }
     return postIDpost;
   }
 
@@ -57,46 +51,58 @@ export class PostsService {
     userId: string,
     dto: UpdatePostDto,
   ): Promise<Posts> {
-    const Post = await this.repo.findByPostID(id);
+    const Post = await this.findByPostID(id);
     if (Post.authorId !== userId) {
       throw new ForbiddenException('수정 권한이 없습니다.');
     }
-    const { category_id, ...data } = dto;
-    if (category_id) {
-      const existedCategory = await this.categoryService.getCategoryId();
-      const isCategoryValid = category_id.every((category) =>
-        existedCategory.includes(category),
-      );
-      if (!isCategoryValid) {
-        throw new BadRequestException('존재하지 않은 카테고리 입니다');
-      }
-      await Promise.all(
-        category_id.map((category) => this.categorize(id, category, userId)),
-      );
-      await this.pushAlarm(category_id);
+    const { categoryIds, ...data } = dto;
+    if (categoryIds) {
+      await this.validateCategory(categoryIds);
+      await this.categorize(id, categoryIds, userId);
+      await this.pushAlarm(categoryIds);
     }
     return await this.repo.updatePost(id, data);
   }
 
-  async deletePost(id: string, userId: string): Promise<{ message: string }> {
-    const post = await this.repo.findByPostID(id);
-    if (post.authorId !== userId) {
-      throw new ForbiddenException('수정 권한이 없습니다.');
+  async validateCategory(categoryIds: string[]): Promise<void> {
+    const existedCategory = await this.categoryService.getCategoryId();
+
+    // DB에 존재하지 않는 카테고리 ID만 필터링 (includes 활용)
+    const invalidCategories = categoryIds.filter(
+      (category) => !existedCategory.includes(category),
+    );
+
+    if (invalidCategories.length > 0) {
+      throw new BadRequestException(
+        `${invalidCategories.join(', ')}는 존재하지 않는 카테고리입니다.`,
+      );
     }
+  }
+
+  async deletePost(id: string, userId: string): Promise<{ message: string }> {
+    const post = await this.findByPostID(id);
+    this.validateEdit(post?.authorId, userId);
     await this.repo.deletePost(id);
     return { message: `Id가 ${id}인 게시글을 삭제하였습니다.` };
   }
 
+  validateEdit(authorId: string, userId: string): void {
+    if (authorId !== userId) {
+      throw new ForbiddenException(`수정권한이 없습니다.`);
+    }
+  }
+
   async categorize(
     PostId: string,
-    category_id: string,
+    categoryIds: string[],
     userId: string,
   ): Promise<Posts> {
-    const post = await this.repo.findByPostID(PostId);
-    if (post.authorId !== userId) {
+    const post = await this.findByPostID(PostId);
+    await this.validateCategory(categoryIds);
+    if (post?.authorId !== userId) {
       throw new ForbiddenException('수정권한이 없습니다.');
     }
-    return await this.repo.categorize(PostId, category_id);
+    return await this.repo.categorize(PostId, categoryIds);
   }
 
   async pushAlarm(categoryId: string[]) {

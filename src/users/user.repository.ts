@@ -1,19 +1,17 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateUserDto } from './dto/UpdateUserDto';
+import { subscribeDto } from './dto/subscribeDto';
 
 @Injectable()
-export class Repository {
+export class UserRepository {
   constructor(private prisma: PrismaService) {}
 
-  async findUserByUuid(uuid: string): Promise<User> {
-    const findUSer = await this.prisma.user.findUniqueOrThrow({
+  async findUserByUuid(uuid: string): Promise<User | null> {
+    const findUSer = await this.prisma.user.findUnique({
       where: { uuid: uuid },
     });
-    if (!findUSer) {
-      throw new NotFoundException();
-    }
     return findUSer;
   }
 
@@ -30,11 +28,19 @@ export class Repository {
     return subscriber.user;
   }
 
+  async findSubscribe(
+    uuid: string,
+    category_id: string,
+  ): Promise<subscribeDto | null> {
+    return await this.prisma.userCategory.findUnique({
+      where: { userId_categoryId: { userId: uuid, categoryId: category_id } },
+    });
+  }
+
   async getMe(id: string): Promise<User> {
-    const user = await this.prisma.user.findUnique({ where: { uuid: id } });
-    if (!user) {
-      throw new NotFoundException(`id가 조회되지 않습니다.`);
-    }
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { uuid: id },
+    });
     return user;
   }
 }

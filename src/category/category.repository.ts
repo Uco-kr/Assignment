@@ -16,15 +16,15 @@ export class CategoryRepository {
     await this.prisma.category.delete({ where: { uuid: id } });
   }
 
-  async FindSubscribeUser(id: string): Promise<string[]> {
+  async FindSubscribeUser(id: string): Promise<string[] | null> {
     const category = await this.prisma.category.findUnique({
       where: { uuid: id },
       select: { users: { select: { user: { select: { uuid: true } } } } },
     });
     if (!category) {
-      return [];
+      return null;
     }
-    return category?.users?.map((subscription) => subscription.user.uuid);
+    return category.users.map((subscription) => subscription.user.uuid);
   }
 
   async getCategoryId(): Promise<string[]> {
@@ -32,7 +32,7 @@ export class CategoryRepository {
     return category.map((category) => category.uuid);
   }
 
-  async getNameById(id: string): Promise<string> {
+  async getCategoryNameById(id: string): Promise<string> {
     const category = await this.prisma.category.findUnique({
       where: { uuid: id },
     });
@@ -48,15 +48,15 @@ export class CategoryRepository {
     // 각 카테고리별 정보를 병렬로 처리
     const result = await Promise.all(
       categoryIds.map(async (id) => {
-        const name = await this.getNameById(id);
+        const name = await this.getCategoryNameById(id);
         const count = await this.prisma.postCategory.count({
           where: { categoryId: id },
         });
 
         return {
-          uuid: id,
-          name,
-          count,
+          CategoryUuid: id,
+          CategoryName: name,
+          PostCount: count,
         };
       }),
     );
@@ -69,7 +69,7 @@ export class CategoryRepository {
 
     const result = await Promise.all(
       categoryIds.map(async (id) => {
-        const name = await this.getNameById(id);
+        const name = await this.getCategoryNameById(id);
         const count = await this.prisma.userCategory.count({
           where: { categoryId: id },
         });

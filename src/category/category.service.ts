@@ -29,8 +29,8 @@ export class CategoryService {
     return await this.repo.getCategoryId();
   }
 
-  async getNameById(id: string): Promise<string> {
-    return await this.repo.getNameById(id);
+  async getCategoryNameById(id: string): Promise<string> {
+    return await this.repo.getCategoryNameById(id);
   }
 
   async getPostCount(): Promise<getPostCount[]> {
@@ -49,15 +49,18 @@ export class CategoryService {
 
     const result = await Promise.all(
       categoryIds.map(async (categoryId) => {
-        const categoryName = await this.getNameById(categoryId);
+        const categoryName = await this.getCategoryNameById(categoryId);
 
-        const count =
-          postCounts.find((item) => item.uuid === categoryId)?.count ?? 0;
+        const foundItem = postCounts.find(
+          (item) => item.CategoryUuid === categoryId,
+        );
+
+        const count = foundItem?.PostCount ?? 0;
 
         return {
-          name: categoryId,
-          uuid: categoryName,
-          count: count,
+          CategoryName: categoryId,
+          CategoryUuid: categoryName,
+          PostCount: count,
         };
       }),
     );

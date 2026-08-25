@@ -1,6 +1,6 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma, User } from '@prisma/client';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class authRepository {
@@ -11,22 +11,15 @@ export class authRepository {
     name: string;
     email: string;
   }): Promise<User> {
-    return await this.prismaService.user
-      .upsert({
-        where: { uuid: userInfo.uuid },
-        create: {
-          uuid: userInfo.uuid,
-          name: userInfo.name,
-          email: userInfo.email,
-        },
-        update: { name: userInfo.name, email: userInfo.email },
-      })
-      .catch((err) => {
-        if (err instanceof Prisma.PrismaClientKnownRequestError) {
-          throw new InternalServerErrorException('Database Error');
-        }
-        throw new InternalServerErrorException('unknown error');
-      });
+    return await this.prismaService.user.upsert({
+      where: { uuid: userInfo.uuid },
+      create: {
+        uuid: userInfo.uuid,
+        name: userInfo.name,
+        email: userInfo.email,
+      },
+      update: { name: userInfo.name, email: userInfo.email },
+    });
   }
 
   async del(refreshToken: string): Promise<void> {

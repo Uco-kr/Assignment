@@ -23,5 +23,5 @@ export class UpdatePostDto {
     isArray: true,
     nullable: true,
   })
-  category_id?: string[];
+  categoryIds?: string[];
 }

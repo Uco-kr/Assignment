@@ -23,5 +23,5 @@ export class CreatePostDto {
     isArray: true,
     nullable: true,
   })
-  category_id?: string[];
+  categoryIds?: string[];
 }

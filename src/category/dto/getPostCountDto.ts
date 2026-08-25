@@ -6,19 +6,19 @@ export class getPostCount {
     type: String,
     nullable: false,
   })
-  name!: string;
+  CategoryName!: string;
 
   @ApiProperty({
     description: '카테고리 id',
     type: String,
     nullable: false,
   })
-  uuid!: string;
+  CategoryUuid!: string;
 
   @ApiProperty({
     description: '게시물 갯수',
     type: Number,
     nullable: false,
   })
-  count!: number;
+  PostCount!: number;
 }

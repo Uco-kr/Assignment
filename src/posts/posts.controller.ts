@@ -118,7 +118,7 @@ export class PostsController {
   async categorize(
     @Req() req: Request & { user: User },
     @Param('id') PostId: string, // 게시글 ID
-    @Param('category_id') category_id: string, // 카테고리 ID
+    @Param('category_id') category_id: string[], // 카테고리 ID
   ) {
     return await this.postservice.categorize(
       PostId,

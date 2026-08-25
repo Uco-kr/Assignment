@@ -1,11 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreatePostDto } from './dto/CreatePostDto';
 import { UpdatePostDto } from './dto/UpdatePostDto';
 import { PrismaService } from '../prisma/prisma.service';
 import { Posts } from '@prisma/client';
 
 @Injectable()
-export class Repository {
+export class PostRepository {
   constructor(private prisma: PrismaService) {}
 
   async create(
@@ -18,14 +18,11 @@ export class Repository {
     return await this.prisma.posts.findMany();
   }
 
-  async findByPostID(id: string): Promise<Posts> {
+  async findByPostID(id: string): Promise<Posts | null> {
     const Post = await this.prisma.posts.findUnique({
       where: { uuid: id },
       include: { PostCategory: { select: { categoryId: true } } },
     });
-    if (!Post) {
-      throw new NotFoundException(`id가 ${id}인 게시물이 없습니다.`);
-    }
     return Post;
   }
 
@@ -34,11 +31,6 @@ export class Repository {
       where: { authorId: id },
       include: { PostCategory: { select: { category: true } } },
     });
-    if (!Post.length) {
-      throw new NotFoundException(
-        `id가 ${id}인 USER가 작성한 게시물이 없습니다.`,
-      );
-    }
     return Post;
   }
 
@@ -53,12 +45,22 @@ export class Repository {
     await this.prisma.posts.delete({ where: { uuid: id } });
   }
 
-  async categorize(PostId: string, category_id: string): Promise<Posts> {
-    const categorizer = await this.prisma.postCategory.create({
-      data: { postId: PostId, categoryId: category_id },
-      include: { post: true },
+  async categorize(PostId: string, categoryIds: string[]): Promise<Posts> {
+    await this.prisma.$transaction([
+      this.prisma.postCategory.deleteMany({
+        where: { postId: PostId },
+      }),
+      this.prisma.postCategory.createMany({
+        data: categoryIds.map((categoryId) => ({
+          postId: PostId,
+          categoryId: categoryId,
+        })),
+      }),
+    ]);
+    return await this.prisma.posts.findUniqueOrThrow({
+      where: { uuid: PostId },
+      include: { PostCategory: { select: { categoryId: true } } },
     });
-    return categorizer.post;
   }
 
   async getOwnPost(id: string, skip: number, take: number) {

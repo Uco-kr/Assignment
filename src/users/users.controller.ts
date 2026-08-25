@@ -1,13 +1,7 @@
 import { Controller, Param, Post, UseGuards, Req, Get } from '@nestjs/common';
 import type { Request } from 'express';
 import { UsersService } from './users.service';
-import {
-  ApiInternalServerErrorResponse,
-  ApiCreatedResponse,
-  ApiOperation,
-  ApiUnauthorizedResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import type { User } from '@prisma/client';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 @Controller('user')
@@ -18,9 +12,6 @@ export class UserController {
     summary: 'subscribe category',
     description: 'subscribe category',
   })
-  @ApiCreatedResponse({ description: 'Return user' })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @ApiInternalServerErrorResponse({ description: 'Internal server error' })
   @Post('subscribe/:categoryId')
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)

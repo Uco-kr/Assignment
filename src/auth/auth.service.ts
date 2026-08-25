@@ -16,20 +16,14 @@ export class AuthService {
   async login(
     auth: string,
   ): Promise<{ access_token: string; refresh_token: string }> {
-    console.log('authService.login 시작');
     const idpToken = auth.split(' ')[1];
-    console.log('idpToken 성공 ', idpToken);
     const userInfo = await this.infoteamAccountService.getUserInfo(idpToken);
-    console.log('1. userInfo 성공:', userInfo);
     const user = await this.authRepository.findUserOrCreate(userInfo);
-    console.log('2. user 저장 성공:', user);
     const tokens = await this.issueTokens(user.uuid);
-    console.log('3. token 발급 성공');
     await this.authRepository.saveRefreshToken(
       tokens.refresh_token,
       userInfo.uuid,
     );
-    console.log('4. refresh token 저장 성공');
     return tokens;
   }
 

@@ -8,19 +8,19 @@ export class getSubscribedCategoryDto {
   })
   @IsOptional()
   @IsString()
-  name!: string;
+  CategoryName!: string;
 
   @ApiProperty({
     description: 'uuid',
   })
   @IsOptional()
   @IsString()
-  uuid!: string;
+  CategoryUuid!: string;
 
   @ApiProperty({
     description: '해당 카테고리의 게시글 갯수',
     type: Number,
   })
   @IsNumber()
-  count!: number;
+  PostCount!: number;
 }

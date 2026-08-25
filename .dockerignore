@@ -1,0 +1,30 @@
+# 의존성 및 빌드 산출물 (이미지 빌드 시 내부에서 새로 생성)
+node_modules
+dist
+db_data
+
+# 환경변수 및 보안 데이터
+.env
+.env.*
+!.env.example
+
+# IDE 및 설정 파일
+.vscode
+.git
+.gitignore
+
+# Docker 관련 파일
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# 포매팅/린팅 및 기타 설정
+.prettierrc
+eslint.config.mjs
+README.md
+
+# 로그 파일
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

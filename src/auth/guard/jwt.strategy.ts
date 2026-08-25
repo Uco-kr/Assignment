@@ -9,10 +9,9 @@ import { JwtPayload } from 'jsonwebtoken';
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(
     private readonly userService: UsersService,
-    private readonly configService: ConfigService, // 👈 ConfigService 주입
+    private readonly configService: ConfigService,
   ) {
-    // configService.get()을 써서 가져와야 .env 로드 시점 문제를 방지할 수 있습니다.
-    const secret = configService.get<string>('JWT_SECRET'); // .env의 키 이름과 대소문자까지 일치해야 함!
+    const secret = configService.get<string>('JWT_SECRET');
 
     if (!secret) {
       throw new Error('JWT_SECRET 환경변수가 정의되지 않았습니다.');

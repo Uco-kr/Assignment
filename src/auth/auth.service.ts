@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { infoteamAccountService } from '../infoteam-account/infoteam-account.service';
 import { authRepository } from './auth.repository';
@@ -7,7 +6,6 @@ import { authRepository } from './auth.repository';
 @Injectable()
 export class AuthService {
   constructor(
-    private usersService: UsersService,
     private jwtService: JwtService,
     private infoteamAccountService: infoteamAccountService,
     private authRepository: authRepository,

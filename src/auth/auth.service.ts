@@ -1,25 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { infoteamAccountService } from '../infoteam-account/infoteam-account.service';
-import { authRepository } from './auth.repository';
+import { InfoteamAccountService } from '../infoteam-account/infoteam-account.service';
+import { AuthRepository } from './auth.repository';
 
 @Injectable()
 export class AuthService {
   constructor(
     private jwtService: JwtService,
-    private infoteamAccountService: infoteamAccountService,
-    private authRepository: authRepository,
+    private infoteamAccountService: InfoteamAccountService,
+    private authRepository: AuthRepository,
   ) {}
 
   async login(
     auth: string,
-  ): Promise<{ access_token: string; refresh_token: string }> {
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     const idpToken = auth.split(' ')[1];
     const userInfo = await this.infoteamAccountService.getUserInfo(idpToken);
     const user = await this.authRepository.findUserOrCreate(userInfo);
     const tokens = await this.issueTokens(user.uuid);
     await this.authRepository.saveRefreshToken(
-      tokens.refresh_token,
+      tokens.refreshToken,
       userInfo.uuid,
     );
     return tokens;
@@ -27,7 +27,7 @@ export class AuthService {
 
   async issueTokens(
     uuid: string,
-  ): Promise<{ access_token: string; refresh_token: string }> {
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     const accessToken = await this.jwtService.signAsync({
       sub: uuid,
       type: 'access',
@@ -38,12 +38,12 @@ export class AuthService {
     );
 
     return {
-      access_token: accessToken,
-      refresh_token: refreshToken,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
     };
   }
 
   async logout(refreshToken: string): Promise<void> {
-    await this.authRepository.del(refreshToken);
+    await this.authRepository.delete(refreshToken);
   }
 }

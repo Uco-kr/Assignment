@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsNumber, IsString } from 'class-validator';
 
 export class getUserCount {
   @ApiProperty({
@@ -6,6 +7,7 @@ export class getUserCount {
     type: String,
     nullable: false,
   })
+  @IsString()
   name!: string;
 
   @ApiProperty({
@@ -13,6 +15,7 @@ export class getUserCount {
     type: String,
     nullable: false,
   })
+  @IsString()
   uuid!: string;
 
   @ApiProperty({
@@ -20,5 +23,6 @@ export class getUserCount {
     type: Number,
     nullable: false,
   })
+  @IsNumber()
   count!: number;
 }

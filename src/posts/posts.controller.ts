@@ -24,7 +24,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guard/jwt.auth.guard';
 import { User } from '@prisma/client';
 @ApiTags('post')
 @Controller('post')
@@ -114,7 +114,7 @@ export class PostsController {
   })
   @ApiUnauthorizedResponse({ description: '인증되지 않은 요청' })
   @ApiNotFoundResponse({ description: '게시글 또는 카테고리를 찾을 수 없음' })
-  @Post('categorize/:id/:category_id')
+  @Post('categorize/:id/:category_id') // post/:postId/category/:categroyId
   async categorize(
     @Req() req: Request & { user: User },
     @Param('id') PostId: string, // 게시글 ID
@@ -128,6 +128,8 @@ export class PostsController {
   }
 
   @Get('getOwnPost')
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard)
   async getOwnPost(
     @Req() req: Request & { user: User },
     @Query('skip') skip: number,

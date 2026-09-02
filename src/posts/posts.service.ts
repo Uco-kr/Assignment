@@ -19,8 +19,10 @@ export class PostsService {
     private readonly categoryService: CategoryService,
   ) {}
 
-  async create(authorId: string, dto: CreatePostDto): Promise<Posts> {
-    const { categoryIds, ...data } = dto;
+  async create(
+    authorId: string,
+    { categoryIds, ...data }: CreatePostDto,
+  ): Promise<Posts> {
     const createData = { ...data, authorId: authorId };
     if (categoryIds) {
       await this.validateCategory(categoryIds);
@@ -34,16 +36,16 @@ export class PostsService {
   }
 
   async findByPostID(id: string): Promise<Posts> {
-    const postIDpost = await this.repo.findByPostID(id);
-    if (!postIDpost) {
+    const post = await this.repo.findByPostID(id);
+    if (!post) {
       throw new NotFoundException(`해당 ID를 가진 게시글이 없습니다.`);
     }
-    return postIDpost;
+    return post;
   }
 
   async findByAuthorID(id: string): Promise<Posts[]> {
-    const userIDpost = this.repo.findByAuthorID(id);
-    return userIDpost;
+    const post = this.repo.findByAuthorID(id);
+    return post;
   }
 
   async updatePost(
@@ -51,17 +53,18 @@ export class PostsService {
     userId: string,
     dto: UpdatePostDto,
   ): Promise<Posts> {
-    const Post = await this.findByPostID(id);
-    if (Post.authorId !== userId) {
+    const post = await this.findByPostID(id);
+    if (post.authorId !== userId) {
       throw new ForbiddenException('수정 권한이 없습니다.');
     }
     const { categoryIds, ...data } = dto;
+    const updatedPost = await this.repo.updatePost(id, data);
     if (categoryIds) {
       await this.validateCategory(categoryIds);
       await this.categorize(id, categoryIds, userId);
       await this.pushAlarm(categoryIds);
     }
-    return await this.repo.updatePost(id, data);
+    return updatedPost;
   }
 
   async validateCategory(categoryIds: string[]): Promise<void> {

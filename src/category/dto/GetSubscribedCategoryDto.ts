@@ -1,26 +1,27 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class getSubscribedCategoryDto {
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'name',
     example: '지니어스',
   })
   @IsOptional()
   @IsString()
-  CategoryName!: string;
+  categoryName!: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'uuid',
   })
   @IsOptional()
   @IsString()
-  CategoryUuid!: string;
+  categoryUuid!: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: '해당 카테고리의 게시글 갯수',
     type: Number,
   })
+  @IsOptional()
   @IsNumber()
-  PostCount!: number;
+  postCount!: number;
 }

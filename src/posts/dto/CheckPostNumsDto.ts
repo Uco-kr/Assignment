@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsNumber, IsString, MinLength } from 'class-validator';
 
 export class CheckPostNums {
   @ApiProperty({
@@ -7,6 +8,8 @@ export class CheckPostNums {
     minLength: 1,
     nullable: false,
   })
+  @IsString()
+  @MinLength(1)
   category!: string;
 
   @ApiProperty({
@@ -14,5 +17,6 @@ export class CheckPostNums {
     type: Number,
     nullable: false,
   })
+  @IsNumber()
   count!: number;
 }

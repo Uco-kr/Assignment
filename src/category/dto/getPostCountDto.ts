@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsNumber, IsString } from 'class-validator';
 
 export class getPostCount {
   @ApiProperty({
@@ -6,19 +7,22 @@ export class getPostCount {
     type: String,
     nullable: false,
   })
-  CategoryName!: string;
+  @IsString()
+  categoryName!: string;
 
   @ApiProperty({
     description: '카테고리 id',
     type: String,
     nullable: false,
   })
-  CategoryUuid!: string;
+  @IsString()
+  categoryUuid!: string;
 
   @ApiProperty({
     description: '게시물 갯수',
     type: Number,
     nullable: false,
   })
-  PostCount!: number;
+  @IsNumber()
+  postCount!: number;
 }

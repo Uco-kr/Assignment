@@ -52,15 +52,15 @@ export class CategoryService {
         const categoryName = await this.getCategoryNameById(categoryId);
 
         const foundItem = postCounts.find(
-          (item) => item.CategoryUuid === categoryId,
+          (item) => item.categoryUuid === categoryId,
         );
 
-        const count = foundItem?.PostCount ?? 0;
+        const count = foundItem?.postCount ?? 0;
 
         return {
-          CategoryName: categoryId,
-          CategoryUuid: categoryName,
-          PostCount: count,
+          categoryName: categoryId,
+          categoryUuid: categoryName,
+          postCount: count,
         };
       }),
     );

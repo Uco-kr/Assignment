@@ -6,9 +6,17 @@ import { UsersModule } from './users/users.module';
 import { CategoryController } from './category/category.controller';
 import { CategoryModule } from './category/category.module';
 import { AlarmModule } from './alarm/alarm.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [PostsModule, AuthModule, UsersModule, CategoryModule, AlarmModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    PostsModule,
+    AuthModule,
+    UsersModule,
+    CategoryModule,
+    AlarmModule,
+  ],
   controllers: [CategoryController],
   providers: [AppService],
 })

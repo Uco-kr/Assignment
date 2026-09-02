@@ -19,19 +19,28 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { JwtTokenDto } from './dto/JwtTokenDto';
-import { JwtAuthGuard } from './guard/jwt-auth.guard';
+import { JwtAuthGuard } from './guard/jwt.auth.guard';
+import { ConfigService } from '@nestjs/config';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  private readonly refreshTokenExpiresIn: number;
+
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {
+    this.refreshTokenExpiresIn =
+      configService.get<number>('refreshTokenExpiresIn') ?? 0;
+  }
 
   @ApiOperation({
     summary: 'Login',
     description: 'Issue JWT token',
   })
   @ApiOkResponse({ type: JwtTokenDto, description: 'Return Jwt Token' })
-  @ApiUnauthorizedResponse({ description: 'Unathorized' })
+  @ApiUnauthorizedResponse({ description: 'UnAuthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal server error' })
   @ApiOAuth2(['email', 'name'], 'oauth2')
   @Post('login')
@@ -39,22 +48,19 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<JwtTokenDto> {
-    console.log('0. /auth/login controller 진입');
-    //아래코드에서 as string | undefined 없으면 오류 발생, 왜? -> 내 생각에는 undefined 안 받으려는 것 같음
     const auth = req.headers.authorization;
-    console.log('Authorization 존재 여부:', Boolean(auth));
     if (!auth) {
       throw new UnauthorizedException();
     }
-    const { access_token, refresh_token } = await this.authService.login(auth);
-    res.cookie('refresh_token', refresh_token, {
+    const { accessToken, refreshToken } = await this.authService.login(auth);
+    res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
-      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      expires: new Date(Date.now() + this.refreshTokenExpiresIn),
       path: '/auth',
     });
-    return { access_token };
+    return { accessToken };
   }
 
   @ApiOperation({

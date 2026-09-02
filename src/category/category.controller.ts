@@ -11,7 +11,7 @@ import {
 import { CategoryService } from './category.service';
 import { createCategoryDto } from './dto/createCategoryDto';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guard/jwt.auth.guard';
 
 @Controller('category')
 export class CategoryController {

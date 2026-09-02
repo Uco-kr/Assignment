@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsString, MinLength } from 'class-validator';
 
 export class createCategoryDto {
   @ApiProperty({
@@ -7,5 +8,7 @@ export class createCategoryDto {
     minLength: 1,
     nullable: false,
   })
+  @IsString()
+  @MinLength(1)
   name!: string;
 }

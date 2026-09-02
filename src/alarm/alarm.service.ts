@@ -2,12 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { pushResponse } from './alarm.type';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AlarmService {
   private readonly pushURL: string;
-  constructor(private readonly httpService: HttpService) {
-    this.pushURL = process.env.pushURL ?? '';
+  constructor(
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
+  ) {
+    this.pushURL = configService.get('pushUrL') ?? '';
   }
 
   async push(deviceId: string[]): Promise<void> {

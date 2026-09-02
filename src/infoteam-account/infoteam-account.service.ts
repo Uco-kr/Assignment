@@ -8,12 +8,16 @@ import { firstValueFrom, catchError } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { IdpUserInfoResponse } from './idp.type';
 import { AxiosError } from 'axios';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class infoteamAccountService {
+export class InfoteamAccountService {
   private readonly idpUrl: string;
-  constructor(private readonly httpService: HttpService) {
-    this.idpUrl = process.env.idpUrl ?? '';
+  constructor(
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
+  ) {
+    this.idpUrl = configService.get<string>('idpUrl') ?? '';
   }
 
   async getUserInfo(accessToken: string): Promise<UserInfo> {

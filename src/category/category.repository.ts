@@ -54,9 +54,9 @@ export class CategoryRepository {
         });
 
         return {
-          CategoryUuid: id,
-          CategoryName: name,
-          PostCount: count,
+          categoryUuid: id,
+          categoryName: name,
+          postCount: count,
         };
       }),
     );

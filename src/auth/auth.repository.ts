@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { User } from '@prisma/client';
 
 @Injectable()
-export class authRepository {
+export class AuthRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   async findUserOrCreate(userInfo: {
@@ -22,7 +22,7 @@ export class authRepository {
     });
   }
 
-  async del(refreshToken: string): Promise<void> {
+  async delete(refreshToken: string): Promise<void> {
     await this.prismaService.refreshToken.delete({
       where: { token: refreshToken },
     });

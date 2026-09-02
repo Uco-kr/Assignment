@@ -5,8 +5,8 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './guard/jwt.strategy';
-import { authRepository } from './auth.repository';
-import { InfoteamAccountModule } from '../infoteam-account/infoeam-account.module';
+import { AuthRepository } from './auth.repository';
+import { InfoteamAccountModule } from '../infoteam-account/infoteam-account.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 @Module({
   imports: [
@@ -23,7 +23,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       }),
     }),
   ],
-  providers: [AuthService, JwtStrategy, authRepository],
+  providers: [AuthService, JwtStrategy, AuthRepository],
   exports: [AuthService],
   controllers: [AuthController],
 })

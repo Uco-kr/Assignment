@@ -3,7 +3,7 @@ import type { Request } from 'express';
 import { UsersService } from './users.service';
 import { ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import type { User } from '@prisma/client';
-import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guard/jwt.auth.guard';
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UsersService) {}

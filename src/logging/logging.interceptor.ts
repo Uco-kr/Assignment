@@ -39,19 +39,33 @@ export class LoggingInterceptor implements NestInterceptor {
     this.logger.log(JSON.stringify(reqLog));
 
     return next.handle().pipe(
-      tap((responseBody: unknown) => {
-        const resLog: Record<string, any> = {
-          type: 'RESPONSE',
-          requestUrl: originalUrl,
-          httpMethod: method,
-          timestamp: new Date().toISOString(),
-          httpStatus: res.statusCode,
-        };
-        if (responseBody !== undefined && responseBody !== null) {
-          resLog.responseBody = responseBody;
-        }
-        this.logger.log(JSON.stringify(resLog));
-      }),
+      tap(
+        (responseBody: unknown) => {
+          const resLog: Record<string, any> = {
+            type: 'RESPONSE',
+            requestUrl: originalUrl,
+            httpMethod: method,
+            timestamp: new Date().toISOString(),
+            httpStatus: res.statusCode,
+          };
+          if (responseBody !== undefined && responseBody !== null) {
+            resLog.responseBody = responseBody;
+          }
+          this.logger.log(JSON.stringify(resLog));
+        },
+        (error: unknown) => {
+          this.logger.error(
+            JSON.stringify({
+              type: 'ERROR',
+              requestUrl: originalUrl,
+              httpMethod: method,
+              timestamp: new Date().toISOString(),
+              httpStatus: res.statusCode,
+              error,
+            }),
+          );
+        },
+      ),
     );
   }
 }

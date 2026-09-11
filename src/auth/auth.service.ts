@@ -12,9 +12,8 @@ export class AuthService {
   ) {}
 
   async login(
-    auth: string,
+    idpToken: string,
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    const idpToken = auth.split(' ')[1];
     const userInfo = await this.infoteamAccountService.getUserInfo(idpToken);
     const user = await this.authRepository.findUserOrCreate(userInfo);
     const tokens = await this.issueTokens(user.uuid);

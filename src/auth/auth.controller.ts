@@ -1,5 +1,6 @@
 import {
   Controller,
+  Headers,
   Post,
   Res,
   Req,
@@ -31,8 +32,15 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
   ) {
+    const expiresInMs = Number(
+      configService.get<string | number>('refreshTokenExpiresIn'),
+    );
     this.refreshTokenExpiresIn =
-      configService.get<number>('refreshTokenExpiresIn') ?? 0;
+      Number.isFinite(expiresInMs) &&
+      expiresInMs > 0 &&
+      Number.isFinite(new Date(Date.now() + expiresInMs).getTime())
+        ? expiresInMs
+        : 7 * 24 * 60 * 60 * 1000;
   }
 
   @ApiOperation({
@@ -45,17 +53,22 @@ export class AuthController {
   @ApiOAuth2(['email', 'name'], 'oauth2')
   @Post('login')
   async login(
-    @Req() req: Request,
+    @Headers('authorization') authHeader: string | undefined,
     @Res({ passthrough: true }) res: Response,
   ): Promise<JwtTokenDto> {
-    const auth = req.headers.authorization;
-    if (!auth) {
-      throw new UnauthorizedException();
+    if (!authHeader) {
+      throw new UnauthorizedException('Authorization header is missing');
     }
-    const { accessToken, refreshToken } = await this.authService.login(auth);
+    const match = /^Bearer +([^\s]+)$/i.exec(authHeader);
+    if (!match) {
+      throw new UnauthorizedException('Invalid Bearer token format');
+    }
+    const { accessToken, refreshToken } = await this.authService.login(
+      match[1],
+    );
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
-      secure: true,
+      secure: this.configService.get<string>('NODE_ENV') === 'production',
       sameSite: 'strict',
       expires: new Date(Date.now() + this.refreshTokenExpiresIn),
       path: '/auth',

@@ -26,7 +26,7 @@ export class UpdatePostDto {
 
   @ApiPropertyOptional({
     description: '게시글의 카테고리의 uuid',
-    type: [String],
+    type: String,
     isArray: true,
     nullable: true,
   })

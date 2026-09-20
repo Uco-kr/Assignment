@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateUserDto } from './dto/UpdateUserDto';
-import { SubscribeDto } from './dto/subscribeDto';
 
 @Injectable()
 export class UserRepository {
@@ -28,13 +27,15 @@ export class UserRepository {
     return subscriber.user;
   }
 
-  async findSubscribe(
-    uuid: string,
-    category_id: string,
-  ): Promise<SubscribeDto | null> {
-    return await this.prisma.userCategory.findUnique({
+  async findSubscribe(uuid: string, category_id: string): Promise<User | null> {
+    const Subscribe = await this.prisma.userCategory.findUnique({
       where: { userId_categoryId: { userId: uuid, categoryId: category_id } },
+      include: { user: true },
     });
+    if (!Subscribe) {
+      return null;
+    }
+    return Subscribe?.user;
   }
 
   async getMe(id: string): Promise<User> {

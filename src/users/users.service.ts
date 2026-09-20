@@ -1,8 +1,4 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { User } from '@prisma/client';
 
@@ -21,7 +17,7 @@ export class UsersService {
   async subscribe(uuid: string, category_id: string): Promise<User> {
     const subscribe = await this.repo.findSubscribe(uuid, category_id);
     if (subscribe) {
-      throw new ConflictException(`이미 구독된 상태입니다.`);
+      return subscribe;
     }
     return await this.repo.subscribe(uuid, category_id);
   }

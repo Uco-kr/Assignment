@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { pushResponse } from './alarm.type';
@@ -14,7 +14,12 @@ export class AlarmService {
     this.pushURL = configService.get('pushUrL') ?? '';
   }
 
-  async push(deviceId: string[]): Promise<void> {
+  async push(deviceId: string[], pushTry: number): Promise<void> {
+    if (pushTry >= 3) {
+      Logger.error(
+        Logger.error(`${deviceId.join(', ')}에게 보내는 것을 실패하였습니다.`),
+      );
+    }
     const push = deviceId.map(
       async (id) =>
         await firstValueFrom(
@@ -23,12 +28,13 @@ export class AlarmService {
           }),
         ),
     );
+    pushTry++;
     const responses = await Promise.all(push);
     const failed = responses
       .filter((res) => res.data.resultCode == '-1')
       .map((res) => res.data.resultData.deviceId);
     if (failed.length > 0) {
-      await this.push(failed);
+      await this.push(failed, pushTry);
     }
   }
 }

@@ -116,7 +116,7 @@ export class PostsService {
       ),
     );
     const deviceId = Array.from(new Set(users));
-    await this.alarmService.push(deviceId);
+    await this.alarmService.push(deviceId, 0);
   }
 
   async getOwnPost(id: string, skip: number, take: number): Promise<Posts[]> {

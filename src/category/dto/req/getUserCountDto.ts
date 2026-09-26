@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber, IsString } from 'class-validator';
 
-export class getUserCount {
+export class GetUserCountDto {
   @ApiProperty({
     description: '카테고리 이름',
     type: String,

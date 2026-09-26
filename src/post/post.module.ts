@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { PostsController } from './posts.controller';
-import { PostsService } from './posts.service';
-import { PostRepository } from './posts.repository';
+import { PostsController } from './post.controller';
+import { PostsService } from './post.service';
+import { PostRepository } from './post.repository';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AlarmModule } from '../alarm/alarm.module';
 import { CategoryModule } from '../category/category.module';

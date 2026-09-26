@@ -2,35 +2,39 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { UsersService } from '../../users/users.service';
+import { UserService } from '../../user/user.service';
 import { JwtPayload } from 'jsonwebtoken';
+
+interface AccessTokenPayload extends JwtPayload {
+  sub: string;
+  type: 'access';
+}
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(
-    private readonly userService: UsersService,
+    private readonly userService: UserService,
     private readonly configService: ConfigService,
   ) {
-    const secret = configService.get<string>('JWT_SECRET');
-
-    if (!secret) {
-      throw new Error('JWT_SECRET 환경변수가 정의되지 않았습니다.');
-    }
+    const secret = configService.getOrThrow<string>('JWT_SECRET');
+    const iss = configService.getOrThrow<string>('TokenIssuer');
 
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: secret,
+      issuer: iss,
     });
   }
 
-  async validate(payload: JwtPayload) {
-    if (!payload.sub) {
-      console.log('payload.sub 가 없습니다.');
+  async validate(payload: AccessTokenPayload) {
+    if (!payload.sub || payload.type !== 'access') {
       throw new UnauthorizedException('invalid token');
     }
-    return await this.userService.findUserByUuid(payload.sub).catch((err) => {
-      console.log('DB조회 실패:', err);
-      throw new UnauthorizedException();
-    });
+
+    try {
+      return await this.userService.findUserByUuid(payload.sub);
+    } catch {
+      throw new UnauthorizedException('invalid token');
+    }
   }
 }

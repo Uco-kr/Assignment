@@ -1,43 +1,45 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
-import { User } from '@prisma/client';
 
 @Injectable()
 export class AuthRepository {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly configService: ConfigService,
+  ) {}
 
-  async findUserOrCreate(userInfo: {
-    uuid: string;
-    name: string;
-    email: string;
-  }): Promise<User> {
-    return await this.prismaService.user.upsert({
-      where: { uuid: userInfo.uuid },
-      create: {
-        uuid: userInfo.uuid,
-        name: userInfo.name,
-        email: userInfo.email,
-      },
-      update: { name: userInfo.name, email: userInfo.email },
-    });
-  }
+  async saveRefreshToken(token: string, userId: string): Promise<void> {
+    const refreshExpiresIn =
+      this.configService.getOrThrow<number>('refreshExpiresIn');
 
-  async delete(refreshToken: string): Promise<void> {
-    await this.prismaService.refreshToken.delete({
-      where: { token: refreshToken },
-    });
-  }
+    const expiresAt = new Date(Date.now() + refreshExpiresIn);
 
-  async saveRefreshToken(refreshToken: string, uuid: string): Promise<void> {
-    await this.prismaService.refreshToken.deleteMany({
-      where: { userId: uuid },
-    });
-
-    await this.prismaService.refreshToken.create({
+    await this.prisma.refreshToken.create({
       data: {
-        token: refreshToken,
-        userId: uuid,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        token,
+        userId,
+        expiresAt,
+      },
+    });
+  }
+
+  async findRefreshToken(token: string) {
+    return this.prisma.refreshToken.findUnique({
+      where: {
+        token,
+      },
+    });
+  }
+
+  async deleteRefreshToken(token: string | undefined): Promise<void> {
+    if (!token) {
+      return;
+    }
+
+    await this.prisma.refreshToken.deleteMany({
+      where: {
+        token,
       },
     });
   }

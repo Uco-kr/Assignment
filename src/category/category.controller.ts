@@ -9,48 +9,57 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { CategoryService } from './category.service';
-import { createCategoryDto } from './dto/createCategoryDto';
-import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guard/jwt.auth.guard';
+import { User } from '@prisma/client';
 
 @Controller('category')
 export class CategoryController {
-  constructor(private readonly CategoryService: CategoryService) {}
+  constructor(private readonly categoryService: CategoryService) {}
 
   @Post()
-  async createCategory(@Body() createCategoryDto: createCategoryDto) {
-    return await this.CategoryService.CreateCategory(createCategoryDto.name);
+  async createCategory(@Body() categoryName: string) {
+    return await this.categoryService.createCategory(categoryName);
   }
 
-  @Delete(':id')
-  async deleteCategory(@Param('id') id: string) {
-    return await this.CategoryService.DeleteCategory(id);
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard)
+  @Delete()
+  async deleteCategory(@Body('categoryId') categoryId: string) {
+    return await this.categoryService.deleteCategory(categoryId);
   }
 
   @Get()
-  async getCategory() {
-    return await this.CategoryService.getCategoryId();
+  async getCategoryIds() {
+    return await this.categoryService.getCategoryIds();
   }
 
-  @Get('PostCount')
-  async getPostCount() {
-    return await this.CategoryService.getPostCount();
+  @Get('post-count')
+  async getPostCounts() {
+    return await this.categoryService.getPostCounts();
   }
 
-  @Get('UserCount')
-  async getUserCount() {
-    return await this.CategoryService.getUserCount();
+  @Get('user-count')
+  async getUserCounts() {
+    return await this.categoryService.getUserCounts();
   }
 
-  @ApiOperation({
-    description: '',
-  })
-  @Get('UserSubscribe')
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
-  async getCategorySubscribing(
+  @Get('user-subscribe')
+  async getSubscribedCategories(
     @Req() req: Request & { user: { uuid: string } },
   ) {
-    return await this.CategoryService.getCategorySubscribing(req.user.uuid);
+    return await this.categoryService.getSubscribedCategories(req.user.uuid);
+  }
+
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard)
+  @Post(':categoryId/subscribe')
+  async subscribe(
+    @Req() req: Request & { user: { uuid: string } },
+    @Param('categoryId') categoryId: string,
+  ): Promise<User> {
+    return await this.categoryService.subscribe(req.user.uuid, categoryId);
   }
 }

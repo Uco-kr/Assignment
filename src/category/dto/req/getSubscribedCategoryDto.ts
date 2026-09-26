@@ -1,7 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNumber, IsOptional, IsString } from 'class-validator';
 
-export class getSubscribedCategoryDto {
+export class GetSubscribedCategoryDto {
   @ApiPropertyOptional({
     description: 'name',
     example: '지니어스',

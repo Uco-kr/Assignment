@@ -16,9 +16,8 @@ export class AlarmService {
 
   async push(deviceId: string[], pushTry: number): Promise<void> {
     if (pushTry >= 3) {
-      Logger.error(
-        Logger.error(`${deviceId.join(', ')}에게 보내는 것을 실패하였습니다.`),
-      );
+      Logger.error(`${deviceId.join(', ')}에게 보내는 것을 실패하였습니다.`);
+      return;
     }
     const push = deviceId.map(
       async (id) =>

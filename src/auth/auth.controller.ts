@@ -19,7 +19,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { JwtTokenDto } from './dto/JwtTokenDto';
+import { JwtTokenDto } from './dto/res/jwt-token.dto';
 import { JwtAuthGuard } from './guard/jwt.auth.guard';
 import { ConfigService } from '@nestjs/config';
 
@@ -32,15 +32,8 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
   ) {
-    const expiresInMs = Number(
-      configService.get<string | number>('refreshTokenExpiresIn'),
-    );
     this.refreshTokenExpiresIn =
-      Number.isFinite(expiresInMs) &&
-      expiresInMs > 0 &&
-      Number.isFinite(new Date(Date.now() + expiresInMs).getTime())
-        ? expiresInMs
-        : 7 * 24 * 60 * 60 * 1000;
+      this.configService.getOrThrow<number>('refreshExpiresIn');
   }
 
   @ApiOperation({
@@ -71,7 +64,7 @@ export class AuthController {
       secure: this.configService.get<string>('NODE_ENV') === 'production',
       sameSite: 'strict',
       expires: new Date(Date.now() + this.refreshTokenExpiresIn),
-      path: '/auth',
+      path: '/api/auth',
     });
     return { accessToken };
   }
@@ -83,7 +76,7 @@ export class AuthController {
   @ApiCreatedResponse({ description: 'Return jwt token' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal server error' })
-  @ApiBearerAuth('jwt')
+  @ApiBearerAuth('access-token')
   @Post('logout')
   @UseGuards(JwtAuthGuard)
   async logout(
@@ -91,12 +84,30 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
     const refreshToken = req.cookies['refresh_token'] as string | undefined;
+    res.clearCookie('refresh_token', { path: '/api/auth' });
+    await this.authService.logout(refreshToken);
+  }
 
-    if (!refreshToken) {
-      throw new UnauthorizedException();
-    }
-
-    res.clearCookie('refresh_token', { path: '/auth' });
-    return await this.authService.logout(refreshToken);
+  @ApiOperation({
+    summary: 'Refresh access token',
+    description: 'Issue a new access token using the refresh token cookie',
+  })
+  @ApiOkResponse({ type: JwtTokenDto })
+  @ApiUnauthorizedResponse({ description: 'Invalid or expired refresh token' })
+  @Post('refresh')
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<JwtTokenDto> {
+    const refreshToken = req.cookies['refresh_token'] as string | undefined;
+    const tokens = await this.authService.refresh(refreshToken);
+    res.cookie('refresh_token', tokens.refreshToken, {
+      httpOnly: true,
+      secure: this.configService.get<string>('NODE_ENV') === 'production',
+      sameSite: 'strict',
+      expires: new Date(Date.now() + this.refreshTokenExpiresIn),
+      path: '/api/auth',
+    });
+    return { accessToken: tokens.accessToken };
   }
 }

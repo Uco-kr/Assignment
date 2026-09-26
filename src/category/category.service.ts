@@ -1,70 +1,53 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CategoryRepository } from './category.repository';
-import { Category } from '@prisma/client';
-import { getPostCount } from './dto/getPostCountDto';
-import { getUserCount } from './dto/getUserCountDto';
-import { getSubscribedCategoryDto } from './dto/GetSubscribedCategoryDto';
+import { Category, User } from '@prisma/client';
+import { GetPostCountDto } from './dto/req/getPostCountDto';
+import { GetUserCountDto } from './dto/req/getUserCountDto';
+import { GetSubscribedCategoryDto } from './dto/req/getSubscribedCategoryDto';
 
 @Injectable()
 export class CategoryService {
-  constructor(private repo: CategoryRepository) {}
+  constructor(private categoryRepository: CategoryRepository) {}
 
-  async CreateCategory(name: string): Promise<Category> {
-    return await this.repo.CreateCategory(name);
+  async createCategory(categoryName: string): Promise<Category> {
+    return await this.categoryRepository.createCategory(categoryName);
   }
 
-  async DeleteCategory(id: string): Promise<void> {
-    await this.repo.DeleteCategory(id);
+  async deleteCategory(categoryId: string): Promise<void> {
+    await this.categoryRepository.deleteCategory(categoryId);
   }
 
-  async FindSubscribeUser(id: string): Promise<string[]> {
-    const users = await this.repo.FindSubscribeUser(id);
-    if (!users) {
-      throw new NotFoundException(`해당 카테고리를 구독하는 사용자가 없습니다`);
-    }
-    return users;
-  }
-
-  async getCategoryId(): Promise<string[]> {
-    return await this.repo.getCategoryId();
-  }
-
-  async getCategoryNameById(id: string): Promise<string> {
-    return await this.repo.getCategoryNameById(id);
-  }
-
-  async getPostCount(): Promise<getPostCount[]> {
-    return await this.repo.getPostCount();
-  }
-
-  async getUserCount(): Promise<getUserCount[]> {
-    return await this.repo.getUserCount();
-  }
-
-  async getCategorySubscribing(
-    id: string,
-  ): Promise<getSubscribedCategoryDto[]> {
-    const categoryIds = await this.repo.getSubscribedCategoryId(id);
-    const postCounts = await this.getPostCount();
-
-    const result = await Promise.all(
-      categoryIds.map(async (categoryId) => {
-        const categoryName = await this.getCategoryNameById(categoryId);
-
-        const foundItem = postCounts.find(
-          (item) => item.categoryUuid === categoryId,
-        );
-
-        const count = foundItem?.postCount ?? 0;
-
-        return {
-          categoryName: categoryId,
-          categoryUuid: categoryName,
-          postCount: count,
-        };
-      }),
+  async findSubscriberIdsByCategoryIds(
+    categoryIds: string[],
+  ): Promise<string[]> {
+    return await this.categoryRepository.findSubscriberIdsByCategoryIds(
+      categoryIds,
     );
+  }
 
-    return result;
+  async findExistingCategoryIds(categoryIds: string[]): Promise<string[]> {
+    return await this.categoryRepository.findExistingCategoryIds(categoryIds);
+  }
+
+  async getCategoryIds(): Promise<string[]> {
+    return await this.categoryRepository.getCategoryIds();
+  }
+
+  async getPostCounts(): Promise<GetPostCountDto[]> {
+    return await this.categoryRepository.getPostCounts();
+  }
+
+  async getUserCounts(): Promise<GetUserCountDto[]> {
+    return await this.categoryRepository.getUserCounts();
+  }
+
+  async getSubscribedCategories(
+    id: string,
+  ): Promise<GetSubscribedCategoryDto[]> {
+    return await this.categoryRepository.getSubscribedCategories(id);
+  }
+
+  async subscribe(userUuid: string, categoryUuid: string): Promise<User> {
+    return await this.categoryRepository.subscribe(userUuid, categoryUuid);
   }
 }

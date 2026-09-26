@@ -1,5 +1,12 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsOptional, IsString, MinLength } from 'class-validator';
+import {
+  IsArray,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 export class UpdatePostDto {
   @ApiPropertyOptional({
@@ -11,6 +18,7 @@ export class UpdatePostDto {
   @IsString()
   @IsOptional()
   @MinLength(1)
+  @MaxLength(255)
   title?: string;
 
   @ApiPropertyOptional({
@@ -25,13 +33,10 @@ export class UpdatePostDto {
   content?: string;
 
   @ApiPropertyOptional({
-    description: '게시글의 카테고리의 uuid',
     type: String,
-    isArray: true,
-    nullable: true,
   })
-  @IsOptional()
   @IsArray()
   @IsOptional()
+  @IsUUID('all', { each: true })
   categoryIds?: string[];
 }

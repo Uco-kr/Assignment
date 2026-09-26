@@ -1,91 +1,114 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Category } from '@prisma/client';
-import { getPostCount } from './dto/getPostCountDto';
-import { getUserCount } from './dto/getUserCountDto';
+import { Category, User } from '@prisma/client';
 
 @Injectable()
 export class CategoryRepository {
   constructor(private prisma: PrismaService) {}
 
-  async CreateCategory(name: string): Promise<Category> {
+  async createCategory(name: string): Promise<Category> {
     return await this.prisma.category.create({ data: { name } });
   }
 
-  async DeleteCategory(id: string): Promise<void> {
+  async deleteCategory(id: string): Promise<void> {
     await this.prisma.category.delete({ where: { uuid: id } });
   }
 
-  async FindSubscribeUser(id: string): Promise<string[] | null> {
-    const category = await this.prisma.category.findUnique({
-      where: { uuid: id },
-      select: { users: { select: { user: { select: { uuid: true } } } } },
-    });
-    if (!category) {
-      return null;
+  async findSubscriberIdsByCategoryIds(
+    categoryIds: string[],
+  ): Promise<string[]> {
+    if (categoryIds.length === 0) {
+      return [];
     }
-    return category.users.map((subscription) => subscription.user.uuid);
+    const subscriptions = await this.prisma.userCategory.findMany({
+      where: { categoryId: { in: categoryIds } },
+      select: { userId: true },
+    });
+    return [...new Set(subscriptions.map(({ userId }) => userId))];
   }
 
-  async getCategoryId(): Promise<string[]> {
-    const category = await this.prisma.category.findMany();
+  async getCategoryIds(): Promise<string[]> {
+    const category = await this.prisma.category.findMany({
+      select: { uuid: true },
+    });
     return category.map((category) => category.uuid);
   }
 
-  async getCategoryNameById(id: string): Promise<string> {
-    const category = await this.prisma.category.findUnique({
-      where: { uuid: id },
-    });
-    if (!category) {
-      throw new NotFoundException(`카테고리가 아무것도 없습니다.`);
+  async findExistingCategoryIds(categoryIds: string[]): Promise<string[]> {
+    if (categoryIds.length === 0) {
+      return [];
     }
-    return category.name;
+    const categories = await this.prisma.category.findMany({
+      where: { uuid: { in: categoryIds } },
+      select: { uuid: true },
+    });
+    return categories.map(({ uuid }) => uuid);
   }
 
-  async getPostCount(): Promise<getPostCount[]> {
-    const categoryIds = await this.getCategoryId();
-
-    // 각 카테고리별 정보를 병렬로 처리
-    const result = await Promise.all(
-      categoryIds.map(async (id) => {
-        const name = await this.getCategoryNameById(id);
-        const count = await this.prisma.postCategory.count({
-          where: { categoryId: id },
-        });
-
-        return {
-          categoryUuid: id,
-          categoryName: name,
-          postCount: count,
-        };
-      }),
-    );
-
-    return result;
+  async getPostCounts(): Promise<
+    { categoryUuid: string; categoryName: string; postCount: number }[]
+  > {
+    const categories = await this.prisma.category.findMany({
+      select: {
+        uuid: true,
+        name: true,
+        _count: { select: { posts: true } },
+      },
+    });
+    return categories.map(({ uuid, name, _count }) => ({
+      categoryUuid: uuid,
+      categoryName: name,
+      postCount: _count.posts,
+    }));
   }
 
-  async getUserCount(): Promise<getUserCount[]> {
-    const categoryIds = await this.getCategoryId();
-
-    const result = await Promise.all(
-      categoryIds.map(async (id) => {
-        const name = await this.getCategoryNameById(id);
-        const count = await this.prisma.userCategory.count({
-          where: { categoryId: id },
-        });
-
-        return { uuid: id, name, count };
-      }),
-    );
-    return result;
+  async getUserCounts(): Promise<
+    { uuid: string; name: string; count: number }[]
+  > {
+    const categories = await this.prisma.category.findMany({
+      select: {
+        uuid: true,
+        name: true,
+        _count: { select: { users: true } },
+      },
+    });
+    return categories.map(({ uuid, name, _count }) => ({
+      uuid,
+      name,
+      count: _count.users,
+    }));
   }
 
-  async getSubscribedCategoryId(id: string): Promise<string[]> {
-    const categoryId = await this.prisma.userCategory.findMany({
-      where: { userId: id },
-      select: { categoryId: true },
+  async getSubscribedCategories(
+    userUuid: string,
+  ): Promise<
+    { categoryUuid: string; categoryName: string; postCount: number }[]
+  > {
+    const categories = await this.prisma.category.findMany({
+      where: { users: { some: { userId: userUuid } } },
+      select: {
+        uuid: true,
+        name: true,
+        _count: { select: { posts: true } },
+      },
+    });
+    return categories.map(({ uuid, name, _count }) => ({
+      categoryUuid: uuid,
+      categoryName: name,
+      postCount: _count.posts,
+    }));
+  }
+
+  async subscribe(userUuid: string, categoryUuid: string): Promise<User> {
+    const subscription = await this.prisma.userCategory.upsert({
+      where: {
+        userId_categoryId: { userId: userUuid, categoryId: categoryUuid },
+      },
+      create: { userId: userUuid, categoryId: categoryUuid },
+      update: {},
+      include: { user: true },
     });
 
-    return categoryId.map(({ categoryId }) => categoryId);
+    return subscription.user;
   }
 }

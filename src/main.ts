@@ -5,11 +5,20 @@ import * as dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import { GlobalExceptionFilter } from './filter/global-exception.filter';
 import { LoggingInterceptor } from './logging/logging.interceptor';
+import { ValidationPipe } from '@nestjs/common';
 
 dotenv.config();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.setGlobalPrefix('api');
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
 
   app.useGlobalInterceptors(new LoggingInterceptor());
 
@@ -55,10 +64,11 @@ async function bootstrap() {
 
   const apiUrl = process.env.API_URL || 'http://localhost:3000';
 
-  SwaggerModule.setup('api', app, document, {
+  SwaggerModule.setup('docs', app, document, {
+    useGlobalPrefix: true,
     swaggerOptions: {
       persistAuthorization: true,
-      oauth2RedirectUrl: `${apiUrl}/api/oauth2-redirect.html`,
+      oauth2RedirectUrl: `${apiUrl}/api/docs/oauth2-redirect.html`,
       withCredentials: true,
       initOAuth: {
         usePkceWithAuthorizationCodeGrant: true,

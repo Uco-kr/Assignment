@@ -3,7 +3,7 @@ import {
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { UserInfo } from './UserInfo';
+import { UserInfo } from './user-info';
 import { firstValueFrom, catchError } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { IdpUserInfoResponse } from './idp.type';

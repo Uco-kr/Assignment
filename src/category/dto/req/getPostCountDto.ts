@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber, IsString } from 'class-validator';
 
-export class getPostCount {
+export class GetPostCountDto {
   @ApiProperty({
     description: '카테고리 이름',
     type: String,

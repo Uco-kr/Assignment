@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
-import { firstValueFrom } from 'rxjs';
-import { pushResponse } from './alarm.type';
+import { firstValueFrom, timeout } from 'rxjs';
+import { PushResponse } from './alarm.type';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
@@ -11,10 +11,10 @@ export class AlarmService {
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {
-    this.pushURL = configService.get('pushUrL') ?? '';
+    this.pushURL = configService.get('PUSH_URL') ?? '';
   }
 
-  async push(deviceId: string[], pushTry: number): Promise<void> {
+  async push(deviceId: string[], pushTry: number = 0): Promise<void> {
     if (pushTry >= 3) {
       Logger.error(`${deviceId.join(', ')}에게 보내는 것을 실패하였습니다.`);
       return;
@@ -22,7 +22,7 @@ export class AlarmService {
     const push = deviceId.map(
       async (id) =>
         await firstValueFrom(
-          this.httpService.post<pushResponse>(this.pushURL + '/api/push', {
+          this.httpService.post<PushResponse>(this.pushURL + '/api/push', {
             deviceid: id,
           }),
         ),
@@ -33,6 +33,7 @@ export class AlarmService {
       .filter((res) => res.data.resultCode == '-1')
       .map((res) => res.data.resultData.deviceId);
     if (failed.length > 0) {
+      timeout(5000);
       await this.push(failed, pushTry);
     }
   }

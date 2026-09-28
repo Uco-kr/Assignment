@@ -1,18 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class AuthRepository {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly configService: ConfigService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async saveRefreshToken(token: string, userId: string): Promise<void> {
-    const refreshExpiresIn =
-      this.configService.getOrThrow<number>('refreshExpiresIn');
-
+  async saveRefreshToken(
+    token: string,
+    userId: string,
+    refreshExpiresIn: number,
+  ): Promise<void> {
     const expiresAt = new Date(Date.now() + refreshExpiresIn);
 
     await this.prisma.refreshToken.create({

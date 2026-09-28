@@ -10,7 +10,7 @@ export class CategoryRepository {
     return await this.prisma.category.create({ data: { name } });
   }
 
-  async deleteCategory(id: string): Promise<void> {
+  async deleteCategoryById(id: string): Promise<void> {
     await this.prisma.category.delete({ where: { uuid: id } });
   }
 
@@ -20,11 +20,12 @@ export class CategoryRepository {
     if (categoryIds.length === 0) {
       return [];
     }
-    const subscriptions = await this.prisma.userCategory.findMany({
+    const subscription = await this.prisma.userCategory.findMany({
       where: { categoryId: { in: categoryIds } },
+      distinct: ['userId'],
       select: { userId: true },
     });
-    return [...new Set(subscriptions.map(({ userId }) => userId))];
+    return subscription.map(({ userId }) => userId);
   }
 
   async getCategoryIds(): Promise<string[]> {

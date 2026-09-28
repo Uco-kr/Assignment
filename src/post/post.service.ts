@@ -65,7 +65,9 @@ export class PostsService {
   }): Promise<Posts> {
     const post = await this.findPostById(postId);
 
-    this.validateEdit(post.authorId, userId);
+    if (!this.validateEdit(post.authorId, userId)) {
+      throw new ForbiddenException(`수정권한이 없습니다.`);
+    }
 
     const uniqueCategoryIds =
       categoryIds === undefined ? undefined : [...new Set(categoryIds)];
@@ -108,10 +110,11 @@ export class PostsService {
     return { message: `Id가 ${postId}인 게시글을 삭제하였습니다.` };
   }
 
-  validateEdit(authorId: string, userId: string): void {
+  validateEdit(authorId: string, userId: string): boolean {
     if (authorId !== userId) {
-      throw new ForbiddenException(`수정권한이 없습니다.`);
+      return false;
     }
+    return true;
   }
 
   async categorize(
@@ -120,7 +123,9 @@ export class PostsService {
     userId: string,
   ): Promise<Posts> {
     const post = await this.findPostById(postId);
-    this.validateEdit(post.authorId, userId);
+    if (!this.validateEdit(post.authorId, userId)) {
+      throw new ForbiddenException(`수정권한이 없습니다.`);
+    }
     const uniqueCategoryIds = [...new Set(categoryIds)];
     await this.validateCategories(uniqueCategoryIds);
     const updatedPost = await this.postRepository.categorize(
@@ -134,7 +139,7 @@ export class PostsService {
   async pushAlarm(categoryIds: string[]): Promise<void> {
     const userIds =
       await this.categoryService.findSubscriberIdsByCategoryIds(categoryIds);
-    await this.alarmService.push(userIds, 0);
+    await this.alarmService.push(userIds);
   }
 
   async getOwnPosts({

@@ -1,24 +1,16 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, UseGuards } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guard/jwt.auth.guard';
 import { User } from '@prisma/client';
+import { GetUser } from './get-user.decorator';
 
 @Controller('category')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
   @Post()
-  async createCategory(@Body() categoryName: string) {
+  async createCategory(@Body('categoryName') categoryName: string) {
     return await this.categoryService.createCategory(categoryName);
   }
 
@@ -47,19 +39,17 @@ export class CategoryController {
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
   @Get('user-subscribe')
-  async getSubscribedCategories(
-    @Req() req: Request & { user: { uuid: string } },
-  ) {
-    return await this.categoryService.getSubscribedCategories(req.user.uuid);
+  async getSubscribedCategories(@GetUser() user: User) {
+    return await this.categoryService.getSubscribedCategories(user.uuid);
   }
 
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
-  @Post(':categoryId/subscribe')
+  @Post('category/subscribe')
   async subscribe(
-    @Req() req: Request & { user: { uuid: string } },
-    @Param('categoryId') categoryId: string,
+    @GetUser() user: User,
+    @Body('categoryId') categoryId: string,
   ): Promise<User> {
-    return await this.categoryService.subscribe(req.user.uuid, categoryId);
+    return await this.categoryService.subscribe(user.uuid, categoryId);
   }
 }

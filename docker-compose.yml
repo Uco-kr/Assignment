@@ -40,7 +40,7 @@ services:
       environment:
         # 도커 내부 통신을 위해 변경해야 하는 주소만 덮어쓰기
         - DATABASE_URL=postgresql://postgres:123456789@db:5432/postgres?schema=public
-        - pushUrL=http://push-server:8090 # 기존 .env의 pushUrL을 도커 컨테이너용 주소로 오버라이드
+        - PUSH_URL=http://push-server:8090 # 기존 .env의 PUSH_URL을 도커 컨테이너용 주소로 오버라이드
       depends_on:
         db:
           condition: service_healthy

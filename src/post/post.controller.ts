@@ -8,14 +8,13 @@ import {
   Delete,
   Put,
   UseGuards,
-  Req,
   Query,
 } from '@nestjs/common';
 import { PostsService } from './post.service';
-import { CreatePostDto } from './dto/req/createPostDto';
-import { UpdatePostDto } from './dto/req/updatePostDto';
-import { GetOwnPostDto } from './dto/req/getOwnPostDto';
-import { SetPostCategoriesDto } from './dto/req/setPostCategoriesDto';
+import { CreatePostDto } from './dto/req/create-post.dto';
+import { UpdatePostDto } from './dto/req/update-post.dto';
+import { GetOwnPostDto } from './dto/req/get-own-post.dto';
+import { SetPostCategoriesDto } from './dto/req/set-post-categories.dto';
 import type { Request } from 'express';
 import {
   ApiBearerAuth,
@@ -26,6 +25,8 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guard/jwt.auth.guard';
 import { User } from '@prisma/client';
+import { PostIdDto } from './dto/req/post-id.dot';
+import { GetUser } from '../category/get-user.decorator';
 
 @ApiTags('post')
 @Controller('post')
@@ -39,12 +40,9 @@ export class PostsController {
     type: CreatePostDto,
     required: true,
   })
-  create(
-    @Req() req: Request & { user: { uuid: string } },
-    @Body() createPostDto: CreatePostDto,
-  ) {
-    return this.postservice.create({
-      authorId: req.user.uuid,
+  async create(@GetUser() user: User, @Body() createPostDto: CreatePostDto) {
+    return await this.postservice.create({
+      authorId: user.uuid,
       title: createPostDto.title,
       content: createPostDto.content,
       categoryIds: createPostDto.categoryIds,
@@ -56,11 +54,11 @@ export class PostsController {
   @UseGuards(JwtAuthGuard)
   @ApiQuery({ name: 'skip & take Post', type: GetOwnPostDto, required: true })
   async getOwnPosts(
-    @Req() req: Request & { user: User },
+    @GetUser() user: User,
     @Query() { skip, take }: GetOwnPostDto,
   ) {
-    return this.postservice.getOwnPosts({
-      userUuid: req.user.uuid,
+    return await this.postservice.getOwnPosts({
+      userUuid: user.uuid,
       skip,
       take,
     });
@@ -74,22 +72,23 @@ export class PostsController {
 
   @Get(':postId')
   @ApiParam({ name: 'postId', type: String, required: true })
-  findPostById(@Param('postId') postId: string) {
-    return this.postservice.findPostById(postId);
+  async findPostById(@Param('postId') PostIdDto: PostIdDto) {
+    return await this.postservice.findPostById(PostIdDto.postId);
   }
+
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
   @Patch(':postId')
   @ApiParam({ name: 'postId', type: String, required: true })
   @ApiBody({ type: UpdatePostDto, required: true })
-  updatePost(
-    @Param('postId') postId: string,
-    @Req() req: Request & { user: User },
+  async updatePost(
+    @Param('postId') PostIdDto: PostIdDto,
+    @GetUser() user: User,
     @Body() updatePostDto: UpdatePostDto,
   ) {
-    return this.postservice.updatePost({
-      postId,
-      userId: req.user.uuid,
+    return await this.postservice.updatePost({
+      postId: PostIdDto.postId,
+      userId: user.uuid,
       title: updatePostDto.title,
       content: updatePostDto.content,
       categoryIds: updatePostDto.categoryIds,
@@ -100,11 +99,11 @@ export class PostsController {
   @UseGuards(JwtAuthGuard)
   @Delete(':postId')
   @ApiParam({ name: 'postId', type: String, required: true })
-  deletePost(
-    @Param('postId') postId: string,
-    @Req() req: Request & { user: User },
+  async deletePost(
+    @Param('postId') PostIdDto: PostIdDto,
+    @GetUser() user: User,
   ) {
-    return this.postservice.deletePost(postId, req.user.uuid);
+    return await this.postservice.deletePost(PostIdDto.postId, user.uuid);
   }
 
   @ApiBearerAuth('access-token')
@@ -113,10 +112,14 @@ export class PostsController {
   @ApiParam({ name: 'postId', type: String, required: true })
   @ApiBody({ type: SetPostCategoriesDto, required: true })
   async categorize(
-    @Req() req: Request & { user: User },
-    @Param('postId') postId: string,
+    @GetUser() user: User,
+    @Param('postId') PostIdDto: PostIdDto,
     @Body() { categoryIds }: SetPostCategoriesDto,
   ) {
-    return this.postservice.categorize(postId, categoryIds, req.user.uuid);
+    return await this.postservice.categorize(
+      PostIdDto.postId,
+      categoryIds,
+      user.uuid,
+    );
   }
 }

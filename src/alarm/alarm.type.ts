@@ -3,7 +3,7 @@ export type ResultData = {
   deviceId: string;
 };
 
-export type pushResponse = {
+export type PushResponse = {
   resultCode: string;
   resultData: ResultData;
 };

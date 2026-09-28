@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class GetPostCountDto {
   @ApiProperty({
@@ -7,6 +7,7 @@ export class GetPostCountDto {
     type: String,
     nullable: false,
   })
+  @IsNotEmpty()
   @IsString()
   categoryName!: string;
 
@@ -16,6 +17,7 @@ export class GetPostCountDto {
     nullable: false,
   })
   @IsString()
+  @IsNotEmpty()
   categoryUuid!: string;
 
   @ApiProperty({
@@ -24,5 +26,6 @@ export class GetPostCountDto {
     nullable: false,
   })
   @IsNumber()
+  @IsNotEmpty()
   postCount!: number;
 }

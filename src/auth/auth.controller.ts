@@ -27,13 +27,16 @@ import { ConfigService } from '@nestjs/config';
 @Controller('auth')
 export class AuthController {
   private readonly refreshTokenExpiresIn: number;
+  private readonly cookieKey: string;
 
   constructor(
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
   ) {
-    this.refreshTokenExpiresIn =
-      this.configService.getOrThrow<number>('refreshExpiresIn');
+    this.refreshTokenExpiresIn = Number(
+      this.configService.getOrThrow<number>('REFRESH_EXPIRES_IN'),
+    );
+    this.cookieKey = 'refresh_token';
   }
 
   @ApiOperation({
@@ -84,7 +87,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
     const refreshToken = req.cookies['refresh_token'] as string | undefined;
-    res.clearCookie('refresh_token', { path: '/api/auth' });
+    res.clearCookie(this.cookieKey, { path: '/api/auth' });
     await this.authService.logout(refreshToken);
   }
 
@@ -99,11 +102,13 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<JwtTokenDto> {
-    const refreshToken = req.cookies['refresh_token'] as string | undefined;
+    const refreshToken = req.cookies['refresh_token'] as string;
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token is missing');
+    }
     const tokens = await this.authService.refresh(refreshToken);
     res.cookie('refresh_token', tokens.refreshToken, {
       httpOnly: true,
-      secure: this.configService.get<string>('NODE_ENV') === 'production',
       sameSite: 'strict',
       expires: new Date(Date.now() + this.refreshTokenExpiresIn),
       path: '/api/auth',

@@ -5,7 +5,7 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './guard/jwt.strategy';
-import { RefreshTokenRepository } from './refresh-token.repository';
+import { AuthRepository } from './auth.repository';
 import { InfoteamAccountModule } from '../infoteam-account/infoteam-account.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 @Module({
@@ -22,7 +22,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       }),
     }),
   ],
-  providers: [AuthService, JwtStrategy, RefreshTokenRepository],
+  providers: [AuthService, JwtStrategy, AuthRepository],
   exports: [AuthService],
   controllers: [AuthController],
 })

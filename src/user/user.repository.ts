@@ -17,9 +17,7 @@ export class UserRepository {
   }
 
   async getMe(userUuid: string): Promise<User> {
-    const user = await this.prismaService.user.findUniqueOrThrow({
-      where: { uuid: userUuid },
-    });
+    const user = this.findUserByUuid(userUuid);
     return user;
   }
 

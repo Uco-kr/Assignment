@@ -14,7 +14,7 @@ export class CategoryService {
   }
 
   async deleteCategory(categoryId: string): Promise<void> {
-    await this.categoryRepository.deleteCategory(categoryId);
+    await this.categoryRepository.deleteCategoryById(categoryId);
   }
 
   async findSubscriberIdsByCategoryIds(

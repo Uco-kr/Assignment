@@ -15,7 +15,7 @@ services:
     networks:
       - board-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
       interval: 5s
       timeout: 3s
       retries: 5
@@ -30,24 +30,40 @@ services:
 
   # 게시판 서버 (2칸 들여쓰기)
   board-server:
-      build: .
-      container_name: board-server
-      restart: always
-      ports:
-        - '127.0.0.1:3000:3000'
-      env_file:
-        - .env  # 기존 .env 파일에 있는 모든 변수(JWT_SECRET, CLIENT_ID 등)를 통째로 가져옴
-      environment:
-        # 도커 내부 통신을 위해 변경해야 하는 주소만 덮어쓰기
-        - DATABASE_URL=postgresql://postgres:123456789@db:5432/postgres?schema=public
-        - PUSH_URL=http://push-server:8090 # 기존 .env의 PUSH_URL을 도커 컨테이너용 주소로 오버라이드
-      depends_on:
-        db:
-          condition: service_healthy
-        push-server:
-          condition: service_started
-      networks:
-        - board-net
+    build: .
+    container_name: board-server
+    restart: always
+    ports:
+      - '127.0.0.1:3000:3000'
+    env_file:
+      - .env # 기존 .env 파일에 있는 모든 변수(JWT_SECRET, CLIENT_ID 등)를 통째로 가져옴
+    environment:
+      # 도커 내부 통신을 위해 변경해야 하는 주소만 덮어쓰기
+      - DATABASE_URL=postgresql://postgres:123456789@db:5432/postgres?schema=public
+      - PUSH_URL=http://push-server:8090 # 기존 .env의 PUSH_URL을 도커 컨테이너용 주소로 오버라이드
+    depends_on:
+      db:
+        condition: service_healthy
+      push-server:
+        condition: service_started
+    networks:
+      - board-net
+
+  web-proxy:
+    image: nginx:latest
+    container_name: web-proxy
+    restart: always
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      # 호스트의 Let's Encrypt 경로를 직접 연결 (ro = Read Only)
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - board-server
+    networks:
+      - board-net
 
 # 네트워크 설정 (최상단 0칸 들여쓰기)
 networks:

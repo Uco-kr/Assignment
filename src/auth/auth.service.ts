@@ -11,7 +11,7 @@ import { RefreshTokenPayload } from './dto/req/refresh-token.payload';
 export class AuthService {
   private readonly refreshExpiresIn: number;
   private readonly accessTokenExpiresIn: number;
-  private readonly Token_Issuer: string;
+  private readonly TOKEN_ISSUER: string;
 
   constructor(
     private readonly jwtService: JwtService,
@@ -26,7 +26,7 @@ export class AuthService {
     this.accessTokenExpiresIn = Number(
       this.configService.getOrThrow<number>('ACCESS_EXPIRES_IN'),
     );
-    this.Token_Issuer = this.configService.getOrThrow<string>('TOKEN_ISSUER');
+    this.TOKEN_ISSUER = this.configService.getOrThrow<string>('TOKEN_ISSUER');
   }
 
   async login(idpToken: string): Promise<TokenDto> {
@@ -42,7 +42,7 @@ export class AuthService {
   }
 
   issueTokens(userUuid: string): TokenDto {
-    const issuer = this.Token_Issuer;
+    const issuer = this.TOKEN_ISSUER;
     const accessToken = this.jwtService.sign(
       {
         sub: userUuid,
@@ -77,7 +77,7 @@ export class AuthService {
       payload = await this.jwtService.verifyAsync<RefreshTokenPayload>(
         refreshToken,
         {
-          issuer: this.Token_Issuer,
+          issuer: this.TOKEN_ISSUER,
         },
       );
     } catch {

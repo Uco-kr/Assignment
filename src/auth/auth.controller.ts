@@ -62,7 +62,7 @@ export class AuthController {
     const { accessToken, refreshToken } = await this.authService.login(
       match[1],
     );
-    res.cookie('refresh_token', refreshToken, {
+    res.cookie(this.cookieKey, refreshToken, {
       httpOnly: true,
       secure: this.configService.get<string>('NODE_ENV') === 'production',
       sameSite: 'strict',
@@ -86,14 +86,15 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
-    const refreshToken = req.cookies['refresh_token'] as string | undefined;
+    const refreshToken = req.cookies[this.cookieKey] as string | undefined;
     res.clearCookie(this.cookieKey, { path: '/api/auth' });
     await this.authService.logout(refreshToken);
   }
 
   @ApiOperation({
     summary: 'Refresh access token',
-    description: 'Issue a new access token using the refresh token cookie',
+    description:
+      'Refresh the access token using the refresh_token cookie. No Authorization header is required.',
   })
   @ApiOkResponse({ type: JwtTokenDto })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired refresh token' })
@@ -102,7 +103,7 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<JwtTokenDto> {
-    const refreshToken = req.cookies['refresh_token'] as string;
+    const refreshToken = req.cookies[this.cookieKey] as string;
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token is missing');
     }

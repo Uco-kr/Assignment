@@ -11,6 +11,7 @@ dotenv.config();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.setGlobalPrefix('api');
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
@@ -64,7 +65,7 @@ async function bootstrap() {
   const apiUrl = process.env.API_URL || 'http://localhost:3000';
 
   SwaggerModule.setup('api', app, document, {
-    useGlobalPrefix: true,
+    useGlobalPrefix: false,
     swaggerOptions: {
       persistAuthorization: true,
       oauth2RedirectUrl: `${apiUrl}/api/oauth2-redirect.html`,

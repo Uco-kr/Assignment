@@ -45,7 +45,7 @@ export class CategoryController {
 
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
-  @Post('category/subscribe')
+  @Post('subscribe')
   async subscribe(
     @GetUser() user: User,
     @Body('categoryId') categoryId: string,

@@ -65,6 +65,7 @@ services:
     networks:
       - board-net
 
+
 # 네트워크 설정 (최상단 0칸 들여쓰기)
 networks:
   board-net:

@@ -67,7 +67,7 @@ export class AuthController {
       secure: this.configService.get<string>('NODE_ENV') === 'production',
       sameSite: 'strict',
       expires: new Date(Date.now() + this.refreshTokenExpiresIn),
-      path: '/api/auth',
+      path: '/auth',
     });
     return { accessToken };
   }
@@ -87,7 +87,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
     const refreshToken = req.cookies['refresh_token'] as string | undefined;
-    res.clearCookie(this.cookieKey, { path: '/api/auth' });
+    res.clearCookie(this.cookieKey, { path: '/auth' });
     await this.authService.logout(refreshToken);
   }
 
@@ -111,7 +111,7 @@ export class AuthController {
       httpOnly: true,
       sameSite: 'strict',
       expires: new Date(Date.now() + this.refreshTokenExpiresIn),
-      path: '/api/auth',
+      path: '/auth',
     });
     return { accessToken: tokens.accessToken };
   }
